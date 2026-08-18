@@ -105,9 +105,9 @@ export function extractUnfinishedTodos(body: string): RolloverExtraction {
 /**
  * Rewrites the given task markers to the migrated marker.
  *
- * Every other byte of the body is preserved. The offset is only rewritten when it
- * still holds an unchecked marker, so a body that changed after it was read is left
- * alone rather than corrupted at a stale position.
+ * Every other byte of the supplied body is preserved. An offset is only rewritten
+ * when it still holds an unchecked marker. The caller remains responsible for
+ * ensuring that the supplied body is the same version from which the offsets came.
  */
 export function markTodosMigrated(body: string, markerOffsets: number[]): string {
     let result = body;

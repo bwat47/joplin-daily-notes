@@ -174,6 +174,24 @@ describe('DailyNotesService', () => {
             expect(repository.updateNoteBody).toHaveBeenCalledWith('previous', '- [>] Call the dentist');
         });
 
+        test('does not overwrite the source note when it changes during rollover', async () => {
+            const repository = createRepository();
+            vi.mocked(repository.findLatestNoteBefore).mockResolvedValue(source);
+            vi.mocked(repository.getNoteBody)
+                .mockResolvedValueOnce('- [ ] Call the dentist')
+                .mockResolvedValueOnce('- [ ] Call the dentist\n\nEdited while rollover was running.');
+            const runtime = createRuntime(rolloverSettings);
+
+            await new DailyNotesService(repository, runtime).openDate(new Date());
+
+            expect(repository.createNote).toHaveBeenCalledWith('folder', expect.any(String), '- [ ] Call the dentist');
+            expect(repository.updateNoteBody).not.toHaveBeenCalled();
+            expect(runtime.showWarning).toHaveBeenCalledWith(
+                'Todos were copied, but the previous note changed during rollover and was not modified.'
+            );
+            expect(runtime.openNote).toHaveBeenCalledWith('created');
+        });
+
         test('does not roll over when the setting is off', async () => {
             const repository = createRepository();
             withPreviousNote(repository, '- [ ] Call the dentist');
@@ -227,6 +245,22 @@ describe('DailyNotesService', () => {
             withPreviousNote(repository, '- [ ] Call the dentist');
             vi.mocked(repository.updateNoteBody).mockRejectedValue(new Error('conflict'));
             const runtime = createRuntime(rolloverSettings);
+
+            await expect(new DailyNotesService(repository, runtime).openDate(new Date())).resolves.toMatchObject({
+                id: 'created',
+            });
+            expect(runtime.showWarning).toHaveBeenCalledWith(
+                'Rolled todos forward but could not mark them migrated in the previous note.'
+            );
+            expect(runtime.openNote).toHaveBeenCalledWith('created');
+        });
+
+        test('still opens the note when showing a migration warning fails', async () => {
+            const repository = createRepository();
+            withPreviousNote(repository, '- [ ] Call the dentist');
+            vi.mocked(repository.updateNoteBody).mockRejectedValue(new Error('conflict'));
+            const runtime = createRuntime(rolloverSettings);
+            vi.mocked(runtime.showWarning).mockRejectedValue(new Error('toast unavailable'));
 
             await expect(new DailyNotesService(repository, runtime).openDate(new Date())).resolves.toMatchObject({
                 id: 'created',

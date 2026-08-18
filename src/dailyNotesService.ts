@@ -148,12 +148,32 @@ export class DailyNotesService {
         if (!rollover.source) return;
 
         try {
-            const marked = markTodosMigrated(rollover.sourceBody, rollover.markerOffsets);
+            const currentBody = await this.repository.getNoteBody(rollover.source.id);
+            if (currentBody !== rollover.sourceBody) {
+                const message =
+                    'Todos were copied, but the previous note changed during rollover and was not modified.';
+                logger.warn(message);
+                await this.showRolloverWarning(message);
+                return;
+            }
+
+            const marked = markTodosMigrated(currentBody, rollover.markerOffsets);
             await this.repository.updateNoteBody(rollover.source.id, marked);
         } catch (error) {
             // The new note already holds the todos, so the worst case is that they
             // read as open in both notes -- visible and fixable, unlike losing them.
-            logger.warn('Rolled todos forward but could not mark them migrated in the previous note.', error);
+            const message = 'Rolled todos forward but could not mark them migrated in the previous note.';
+            logger.warn(message, error);
+            await this.showRolloverWarning(message);
+        }
+    }
+
+    private async showRolloverWarning(message: string): Promise<void> {
+        try {
+            await this.runtime.showWarning(message);
+        } catch (error) {
+            // A failed toast must not prevent the newly created note from opening.
+            logger.warn('Could not show the todo rollover warning.', error);
         }
     }
 

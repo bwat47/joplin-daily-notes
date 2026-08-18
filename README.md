@@ -116,6 +116,8 @@ Details worth knowing:
 - A todo nested under an unfinished parent travels with that parent, and is not carried twice.
 - An unfinished todo under a completed parent still rolls over on its own.
 - Checkboxes inside code blocks are ignored.
+- If the previous note changes while rollover is running, its todos are copied but the previous note is left untouched,
+  and the plugin displays a warning rather than overwriting the edit.
 - Re-opening a note rolls nothing over a second time: the note already exists, and `- [>]` is not an open task.
 
 ## Calendar markers
