@@ -1,4 +1,15 @@
+/**
+ * Dialog script for the calendar dialog.
+ *
+ * This runs in Joplin's dialog webview, not in the plugin host.
+ * So runtime imports are only safe when the imported module is browser-compatible.
+ */
 import type { QueryExistingDatesResponse, WeekStart } from '../types';
+
+// The generated bundle ends with `exports.default = ...`, but Joplin executes
+// dialog scripts as browser scripts without providing `exports`.
+const dialogGlobal = globalThis as typeof globalThis & { exports?: Record<string, unknown> };
+dialogGlobal.exports ??= {};
 
 declare const webviewApi: {
     postMessage(message: unknown): Promise<unknown>;
