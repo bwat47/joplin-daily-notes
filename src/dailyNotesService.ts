@@ -42,7 +42,10 @@ interface PendingRollover {
     markerOffsets: number[];
 }
 
-const NO_ROLLOVER: PendingRollover = { rolled: '', source: null, sourceBody: '', markerOffsets: [] };
+/** A rollover that carries nothing. Built fresh so no caller shares one `markerOffsets`. */
+function noRollover(): PendingRollover {
+    return { rolled: '', source: null, sourceBody: '', markerOffsets: [] };
+}
 
 function isToday(date: Date): boolean {
     return toIsoDate(date) === toIsoDate(new Date());
@@ -134,21 +137,21 @@ export class DailyNotesService {
         folderName: string,
         date: Date
     ): Promise<PendingRollover> {
-        if (!settings.rolloverTodos || !isToday(date)) return NO_ROLLOVER;
+        if (!settings.rolloverTodos || !isToday(date)) return noRollover();
 
         try {
             const targets = buildLookbackTargets(date, settings.rolloverLookbackDays, settings.dateFormat);
             const source = await this.repository.findLatestNoteBefore(folderName, targets);
-            if (!source) return NO_ROLLOVER;
+            if (!source) return noRollover();
 
             const sourceBody = await this.repository.getNoteBody(source.id);
             const { rolled, markerOffsets } = extractUnfinishedTodos(sourceBody);
-            if (!rolled) return NO_ROLLOVER;
+            if (!rolled) return noRollover();
 
             return { rolled, source, sourceBody, markerOffsets };
         } catch (error) {
             logger.warn('Could not roll todos over from the previous daily note.', error);
-            return NO_ROLLOVER;
+            return noRollover();
         }
     }
 
