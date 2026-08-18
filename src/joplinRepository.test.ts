@@ -236,6 +236,28 @@ describe('JoplinRepository', () => {
         expect(data.post).not.toHaveBeenCalled();
     });
 
+    test('selects the earliest-created duplicate as the previous note', async () => {
+        const data = createDataApi();
+        vi.mocked(data.get)
+            .mockResolvedValueOnce({
+                items: [{ id: 'root', title: 'Daily Notes', parent_id: '' }],
+                has_more: false,
+            })
+            .mockResolvedValueOnce({
+                items: [
+                    { id: 'later', parent_id: 'root', title: '2024-01-08', user_created_time: 20 },
+                    { id: 'earlier', parent_id: 'root', title: '2024-01-08', user_created_time: 10 },
+                ],
+                has_more: false,
+            });
+        const repository = new JoplinRepository(data);
+        const targets: DailyNoteTarget[] = [{ isoDate: '2024-01-08', folderSegments: [], title: '2024-01-08' }];
+
+        await expect(repository.findLatestNoteBefore('Daily Notes', targets)).resolves.toMatchObject({
+            id: 'earlier',
+        });
+    });
+
     test('returns null and creates nothing when no candidate exists', async () => {
         const data = createDataApi();
         vi.mocked(data.get).mockResolvedValue({ items: [], has_more: false });

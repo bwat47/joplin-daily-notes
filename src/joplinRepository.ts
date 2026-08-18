@@ -65,6 +65,23 @@ function pathKey(segments: string[]): string {
     return JSON.stringify(segments);
 }
 
+function selectCanonicalNote(notes: NoteRecord[], folderId: string, title: string): NoteRecord | null {
+    const matches = notes.filter((note) => note.title === title);
+    if (matches.length === 0) return null;
+
+    matches.sort((left, right) => {
+        const timeDifference =
+            (left.user_created_time ?? Number.MAX_SAFE_INTEGER) - (right.user_created_time ?? Number.MAX_SAFE_INTEGER);
+        return timeDifference || left.id.localeCompare(right.id);
+    });
+    if (matches.length > 1) {
+        logger.warn(
+            `Found ${matches.length} notes titled "${title}" in notebook ${folderId}; using the earliest-created note.`
+        );
+    }
+    return matches[0];
+}
+
 export class JoplinRepository {
     // Read-only highlight lookups only. The open-or-create path always reads
     // live, so a stale miss can never cause a duplicate note.
@@ -113,21 +130,7 @@ export class JoplinRepository {
      * duplicate.
      */
     public async findCanonicalNote(folderId: string, title: string): Promise<NoteRecord | null> {
-        const notes = (await this.listFolderNotes(folderId)).filter((note) => note.title === title);
-        if (notes.length === 0) return null;
-
-        notes.sort((left, right) => {
-            const timeDifference =
-                (left.user_created_time ?? Number.MAX_SAFE_INTEGER) -
-                (right.user_created_time ?? Number.MAX_SAFE_INTEGER);
-            return timeDifference || left.id.localeCompare(right.id);
-        });
-        if (notes.length > 1) {
-            logger.warn(
-                `Found ${notes.length} notes titled "${title}" in notebook ${folderId}; opening the earliest-created note.`
-            );
-        }
-        return notes[0];
+        return selectCanonicalNote(await this.listFolderNotes(folderId), folderId, title);
     }
 
     public async createNote(folderId: string, title: string, body: string): Promise<NoteRecord> {
@@ -187,7 +190,7 @@ export class JoplinRepository {
                 listings.set(folder.id, notes);
             }
 
-            const match = notes.find((note) => note.title === target.title);
+            const match = selectCanonicalNote(notes, folder.id, target.title);
             if (match) return match;
         }
 
