@@ -21,6 +21,8 @@ const MARKER_LENGTH = 3;
 const UNCHECKED_MARKER = '[ ]';
 /** Bullet-journal "migrated forward". Not a GFM checkbox, so checkbox scanners skip it. */
 const MIGRATED_MARKER = '[>]';
+/** Markdown unordered markers or an ordered marker of up to nine digits. */
+const LIST_MARKER_BEFORE_TASK = /(?:[-+*]|\d{1,9}[.)])[ \t]+$/;
 
 const taskListParser = parser.configure(TaskList);
 
@@ -32,9 +34,21 @@ export interface RolloverExtraction {
 }
 
 interface UncheckedItem {
+    /** Parser range used to determine whether another item is its descendant. */
     from: number;
     to: number;
+    /** Actual source offset of the list bullet, which may be later than `from`. */
+    bulletFrom: number;
     markerFrom: number;
+}
+
+function findBulletFrom(body: string, itemFrom: number, markerFrom: number): number {
+    const lineStart = body.lastIndexOf('\n', markerFrom - 1) + 1;
+    const match = LIST_MARKER_BEFORE_TASK.exec(body.slice(lineStart, markerFrom));
+
+    // TaskList only produces a TaskMarker after a list marker. Retain the parser
+    // range as a defensive fallback if a future grammar changes that invariant.
+    return match ? lineStart + match.index : itemFrom;
 }
 
 function collectUncheckedItems(body: string): UncheckedItem[] {
@@ -47,7 +61,12 @@ function collectUncheckedItems(body: string): UncheckedItem[] {
             const marker = node.node.getChild('Task')?.getChild('TaskMarker');
             if (!marker || body.slice(marker.from, marker.to) !== UNCHECKED_MARKER) return;
 
-            items.push({ from: node.from, to: node.to, markerFrom: marker.from });
+            items.push({
+                from: node.from,
+                to: node.to,
+                bulletFrom: findBulletFrom(body, node.from, marker.from),
+                markerFrom: marker.from,
+            });
         },
     });
 
@@ -57,11 +76,11 @@ function collectUncheckedItems(body: string): UncheckedItem[] {
 /**
  * Slices an item out of the body and removes the indentation it sat under.
  *
- * An item's range starts at its bullet rather than at the start of its line, so a
- * nested item arrives with its first line already flush and every later line still
- * carrying the original indentation. Stripping the item's own line prefix from the
- * later lines restores the block's internal shape at the top level. The prefix is
- * whatever preceded the bullet, so this also lifts an item out of a blockquote.
+ * Lezer's `ListItem` range may start inside the indentation allowed by a parent
+ * list, rather than at the nested item's actual bullet. The caller supplies the
+ * bullet offset derived from the task marker, making the first line flush. Stripping
+ * the full prefix before that bullet from later lines restores the block's internal
+ * shape at the top level. The prefix may also contain blockquote markers.
  */
 function dedent(body: string, from: number, to: number): string {
     const lineStart = body.lastIndexOf('\n', from - 1) + 1;
@@ -93,7 +112,7 @@ export function extractUnfinishedTodos(body: string): RolloverExtraction {
     for (const item of collectUncheckedItems(body)) {
         // Document order guarantees a parent is seen before the children its range covers.
         if (item.from >= collectedEnd) {
-            blocks.push(dedent(body, item.from, item.to));
+            blocks.push(dedent(body, item.bulletFrom, item.to));
             collectedEnd = item.to;
         }
         markerOffsets.push(item.markerFrom);

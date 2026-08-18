@@ -49,6 +49,20 @@ describe('extractUnfinishedTodos', () => {
         expect(extractUnfinishedTodos(body).rolled).toBe(lines('- [ ] child', '  - [ ] grandchild'));
     });
 
+    test('fully dedents standalone items nested with four spaces', () => {
+        const body = lines(
+            '- [x] Assembly Transfers',
+            '    - [ ] Components',
+            '- [ ] PO Receipt/Return',
+            '- [ ] WO Transfers',
+            '    - [ ] Shop Ops'
+        );
+
+        expect(extractUnfinishedTodos(body).rolled).toBe(
+            lines('- [ ] Components', '- [ ] PO Receipt/Return', '- [ ] WO Transfers', '    - [ ] Shop Ops')
+        );
+    });
+
     test('lifts an item out of a blockquote', () => {
         const body = lines('> - [ ] quoted todo', '> continuation');
 
