@@ -10,6 +10,7 @@ docs/ARCHITECTURE.md
 - `npm run format` Format code with Prettier.
 - `npm run knip` Find unused dependencies, exports and files.
 - `npm run updateVersion` Sync plugin version metadata.
+- `npm test` Run Vitest test suite.
 
 ## Design Principles
 
