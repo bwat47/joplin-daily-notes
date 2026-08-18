@@ -85,6 +85,18 @@ describe('DailyNotesService', () => {
         expect(runtime.showWarning).toHaveBeenCalledOnce();
     });
 
+    test('still creates the note when the template warning cannot be shown', async () => {
+        const repository = createRepository();
+        vi.mocked(repository.getNoteBody).mockRejectedValue(new Error('missing'));
+        const runtime = createRuntime({ ...defaultSettings, templateNoteId: 'bad-id' });
+        vi.mocked(runtime.showWarning).mockRejectedValue(new Error('toast unavailable'));
+
+        await new DailyNotesService(repository, runtime).openDate(new Date(2024, 0, 1));
+
+        expect(repository.createNote).toHaveBeenCalledWith('folder', '2024-01-01', '');
+        expect(runtime.openNote).toHaveBeenCalledWith('created');
+    });
+
     test('serializes simultaneous opens so only one note is created', async () => {
         const repository = createRepository();
         let existing: NoteRecord | null = null;

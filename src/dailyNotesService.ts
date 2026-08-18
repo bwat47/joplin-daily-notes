@@ -162,7 +162,7 @@ export class DailyNotesService {
                 const message =
                     'Todos were copied, but the previous note changed during rollover and was not modified.';
                 logger.warn(message);
-                await this.showRolloverWarning(message);
+                await this.showWarning(message);
                 return;
             }
 
@@ -173,16 +173,16 @@ export class DailyNotesService {
             // read as open in both notes -- visible and fixable, unlike losing them.
             const message = 'Rolled todos forward but could not mark them migrated in the previous note.';
             logger.warn(message, error);
-            await this.showRolloverWarning(message);
+            await this.showWarning(message);
         }
     }
 
-    private async showRolloverWarning(message: string): Promise<void> {
+    /** A failed toast must not stop the note from being created or opened. */
+    private async showWarning(message: string): Promise<void> {
         try {
             await this.runtime.showWarning(message);
         } catch (error) {
-            // A failed toast must not prevent the newly created note from opening.
-            logger.warn('Could not show the todo rollover warning.', error);
+            logger.warn('Could not show a warning.', error);
         }
     }
 
@@ -207,7 +207,7 @@ export class DailyNotesService {
             template = await this.repository.getNoteBody(templateNoteId);
         } catch (error) {
             logger.warn('Could not read the configured template note.', error);
-            await this.runtime.showWarning(
+            await this.showWarning(
                 'The configured template note could not be read. The daily note will be created without it.'
             );
             return rolledTodos;
