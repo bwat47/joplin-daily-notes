@@ -1,4 +1,4 @@
-import { dateTemplateValues, formatDate } from './dateFormat';
+import { formatDate, formatTime, toIsoDate } from './dateFormat';
 import { toMessage } from './errors';
 
 export interface TemplateContext {
@@ -9,38 +9,48 @@ export interface TemplateContext {
 
 export type TemplateWarningHandler = (message: string) => void;
 
-function formatTime(date: Date): string {
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
-}
+const DEFAULT_TIME_FORMAT = 'HH:mm';
 
+/**
+ * Expands `{{...}}` variables in a template body.
+ *
+ * The vocabulary deliberately uses the same Day.js formatting-token model as
+ * the date format setting, so there is one syntax to learn rather than a
+ * parallel table of named variables. Separate date and time dialects reflect
+ * the two clocks: `date:` formats the day the note belongs to, `time:` the moment
+ * it is being created. `{{date}}`,
+ * `{{time}}` and `{{title}}` are shorthands for the common cases; `{{title}}`
+ * has no token form because it depends on the configured date format.
+ *
+ * A single pass over the template means an expansion that produces `{{` can
+ * never be re-expanded.
+ */
 export function renderTemplate(
     template: string,
     context: TemplateContext,
     onWarning: TemplateWarningHandler = () => undefined
 ): string {
-    const values = {
-        ...dateTemplateValues(context.date),
-        time: formatTime(context.creationTime),
-        title: context.title,
-    };
-
     return template.replace(/{{([^{}]*)}}/g, (original, rawVariable: string) => {
         const variable = rawVariable.trim();
 
-        if (variable.startsWith('date:')) {
-            const customFormat = variable.slice('date:'.length).trim();
+        if (variable === 'title') return context.title;
+        if (variable === 'date') return toIsoDate(context.date);
+        if (variable === 'time') return formatTime(context.creationTime, DEFAULT_TIME_FORMAT);
+
+        // First colon only, so a time format may itself contain colons.
+        const separatorIndex = variable.indexOf(':');
+        const namespace = separatorIndex > 0 ? variable.slice(0, separatorIndex).trim() : '';
+        const customFormat = variable.slice(separatorIndex + 1).trim();
+
+        if (namespace === 'date' || namespace === 'time') {
             try {
-                return formatDate(context.date, customFormat);
+                return namespace === 'date'
+                    ? formatDate(context.date, customFormat)
+                    : formatTime(context.creationTime, customFormat);
             } catch (error) {
                 onWarning(`Could not expand ${original}: ${toMessage(error)}`);
                 return original;
             }
-        }
-
-        if (Object.prototype.hasOwnProperty.call(values, variable)) {
-            return values[variable as keyof typeof values];
         }
 
         onWarning(`Unknown template variable ${original}; leaving it unchanged.`);
