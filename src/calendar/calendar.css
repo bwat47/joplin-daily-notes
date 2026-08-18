@@ -1,0 +1,140 @@
+:root {
+    color-scheme: light dark;
+}
+
+.daily-notes-calendar {
+    box-sizing: border-box;
+    /* Bound by 100%, not vw: the dialog's webview viewport is wider than the
+       usable dialog box, so a vw cap never clamped and the grid overflowed. */
+    width: min(22rem, 100%);
+    padding: 0.5rem;
+    color: var(--joplin-color, inherit);
+    font-family: var(--joplin-font-family, sans-serif);
+}
+
+.calendar-header {
+    display: grid;
+    /* minmax(0, ...) on the middle column: a 1fr track has a min-content floor,
+       so a long month name would push the next-month arrow out of the dialog. */
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.calendar-heading {
+    margin: 0;
+    /* Both needed for the heading to give way rather than displace the arrows:
+       min-width overrides a grid item's min-content minimum, and overflow keeps
+       an over-long month name from spilling across the buttons. It wraps to two
+       lines at large font sizes, which is preferable to losing navigation. */
+    min-width: 0;
+    overflow: hidden;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.calendar-navigation,
+.calendar-date {
+    border: 1px solid transparent;
+    border-radius: 0.35rem;
+    color: inherit;
+    background: transparent;
+    cursor: pointer;
+}
+
+.calendar-navigation {
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+    font-size: 1.25rem;
+}
+
+.calendar-navigation:hover,
+.calendar-date:hover {
+    background: var(--joplin-background-color-hover3, rgba(127, 127, 127, 0.16));
+}
+
+.calendar-navigation:focus-visible,
+.calendar-date:focus-visible {
+    outline: 2px solid var(--joplin-color-active, #3268c8);
+    outline-offset: 1px;
+}
+
+.calendar-grid {
+    display: grid;
+    /* minmax(0, ...) so the seven columns shrink to fit the dialog. A rem-based
+       minimum cannot shrink, so the last columns were clipped instead. */
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.2rem;
+}
+
+.calendar-weekday {
+    padding: 0.35rem 0;
+    text-align: center;
+    color: var(--joplin-color-faded, #777);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.calendar-date {
+    position: relative;
+    min-height: 2.4rem;
+    padding: 0.25rem;
+    font: inherit;
+}
+
+.calendar-date--outside {
+    color: var(--joplin-color-faded, #777);
+    opacity: 0.55;
+}
+
+.calendar-date--today {
+    border-color: var(--joplin-color-active, #3268c8);
+}
+
+.calendar-date--selected {
+    color: var(--joplin-background-color, #fff);
+    background: var(--joplin-color-active, #3268c8);
+}
+
+.calendar-date--selected:hover {
+    background: var(--joplin-color-active, #3268c8);
+}
+
+.calendar-date__marker {
+    display: none;
+    position: absolute;
+    bottom: 0.2rem;
+    left: 50%;
+    width: 0.28rem;
+    height: 0.28rem;
+    border-radius: 50%;
+    background: currentColor;
+    transform: translateX(-50%);
+}
+
+.calendar-date--existing .calendar-date__marker {
+    display: block;
+}
+
+.calendar-status {
+    min-height: 1.2rem;
+    margin: 0.6rem 0 0;
+    color: var(--joplin-color-faded, #777);
+    text-align: center;
+    font-size: 0.78rem;
+}
+
+.calendar-status--error {
+    color: var(--joplin-color-error, #b42318);
+}
+
+@media (max-width: 360px) {
+    .daily-notes-calendar {
+        padding: 0.2rem;
+    }
+
+    .calendar-grid {
+        gap: 0.1rem;
+    }
+}

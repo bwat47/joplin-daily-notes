@@ -1,0 +1,52 @@
+{
+    "name": "joplin-plugin-daily-notes",
+    "version": "1.0.0",
+    "scripts": {
+        "dist": "webpack --env joplin-plugin-config=buildMain && webpack --env joplin-plugin-config=buildExtraScripts && webpack --env joplin-plugin-config=createArchive",
+        "prepare": "npm run dist",
+        "updateVersion": "webpack --env joplin-plugin-config=updateVersion",
+        "update": "npm install -g generator-joplin && yo joplin --node-package-manager npm --update --force",
+        "typecheck": "tsc --noEmit",
+        "lint": "eslint --ext .ts src/",
+        "lint:fix": "eslint --ext .ts src/ --fix",
+        "format": "prettier --write \"src/**/*.ts\"",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "knip": "knip"
+    },
+    "license": "MIT",
+    "keywords": [
+        "joplin-plugin"
+    ],
+    "files": [
+        "publish"
+    ],
+    "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "@types/node": "^26.2.0",
+        "@typescript-eslint/eslint-plugin": "^8.67.0",
+        "@typescript-eslint/parser": "^8.67.0",
+        "@vitest/coverage-v8": "^4.0.9",
+        "chalk": "^4.1.0",
+        "copy-webpack-plugin": "^14.0.0",
+        "eslint": "^10.8.1",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-import-x": "^4.17.1",
+        "eslint-plugin-sonarjs": "^4.2.0",
+        "fs-extra": "^10.1.0",
+        "glob": "^8.0.3",
+        "globals": "^14.0.0",
+        "jsdom": "^29.1.1",
+        "knip": "^6.24.0",
+        "prettier": "^3.9.6",
+        "tar": "^7.5.22",
+        "ts-loader": "^9.3.1",
+        "typescript": "^6.0.3",
+        "vitest": "^4.1.10",
+        "webpack": "^5.109.2",
+        "webpack-cli": "^7.2.2"
+    },
+    "dependencies": {
+        "dayjs": "^1.11.23"
+    }
+}
