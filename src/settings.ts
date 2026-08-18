@@ -7,6 +7,8 @@ const SETTING_KEYS = {
     dateFormat: 'dateFormat',
     templateNoteId: 'templateNoteId',
     weekStart: 'weekStart',
+    rolloverTodos: 'rolloverTodos',
+    rolloverLookbackDays: 'rolloverLookbackDays',
 } as const;
 
 const SETTING_SECTION = 'dailyNotes';
@@ -54,7 +56,34 @@ export async function registerSettings(): Promise<void> {
             },
             label: 'First day of week',
         },
+        [SETTING_KEYS.rolloverTodos]: {
+            value: false,
+            type: SettingItemType.Bool,
+            section: SETTING_SECTION,
+            public: true,
+            label: 'Roll unfinished todos forward',
+            description:
+                "Copy unfinished tasks from the most recent earlier daily note into today's new note, " +
+                'and mark them [>] in that earlier note.',
+        },
+        [SETTING_KEYS.rolloverLookbackDays]: {
+            value: 30,
+            type: SettingItemType.Int,
+            section: SETTING_SECTION,
+            public: true,
+            minimum: 1,
+            maximum: 365,
+            label: 'Rollover lookback (days)',
+            description: 'How far back to search for the previous daily note.',
+        },
     });
+}
+
+/** Joplin can return a stale or hand-edited value, so the search stays bounded regardless. */
+function clampLookback(value: unknown): number {
+    const days = Math.trunc(Number(value));
+    if (!Number.isFinite(days) || days < 1) return 30;
+    return Math.min(days, 365);
 }
 
 export async function readSettings(): Promise<DailyNoteSettings> {
@@ -66,5 +95,7 @@ export async function readSettings(): Promise<DailyNoteSettings> {
         dateFormat: String(values[SETTING_KEYS.dateFormat] ?? 'YYYY-MM-DD'),
         templateNoteId: String(values[SETTING_KEYS.templateNoteId] ?? ''),
         weekStart,
+        rolloverTodos: values[SETTING_KEYS.rolloverTodos] === true,
+        rolloverLookbackDays: clampLookback(values[SETTING_KEYS.rolloverLookbackDays]),
     };
 }

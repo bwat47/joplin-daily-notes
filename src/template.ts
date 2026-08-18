@@ -5,6 +5,8 @@ export interface TemplateContext {
     date: Date;
     creationTime: Date;
     title: string;
+    /** Todos carried from the previous daily note. Empty when rollover is off or found nothing. */
+    rolledTodos: string;
 }
 
 export type TemplateWarningHandler = (message: string) => void;
@@ -22,6 +24,9 @@ const DEFAULT_TIME_FORMAT = 'HH:mm';
  * `{{time}}` and `{{title}}` are shorthands for the common cases; `{{title}}`
  * has no token form because it depends on the configured date format.
  *
+ * `{{todos}}` is bare for the same reason: it carries content rather than a
+ * formatted date, so there is nothing for a token to describe.
+ *
  * A single pass over the template means an expansion that produces `{{` can
  * never be re-expanded.
  */
@@ -34,6 +39,7 @@ export function renderTemplate(
         const variable = rawVariable.trim();
 
         if (variable === 'title') return context.title;
+        if (variable === 'todos') return context.rolledTodos;
         if (variable === 'date') return toIsoDate(context.date);
         if (variable === 'time') return formatTime(context.creationTime, DEFAULT_TIME_FORMAT);
 

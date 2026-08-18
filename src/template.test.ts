@@ -5,6 +5,7 @@ describe('renderTemplate', () => {
         date: new Date(2024, 0, 7),
         creationTime: new Date(2024, 0, 7, 9, 5),
         title: '2024-01-07',
+        rolledTodos: '',
     };
 
     test('expands the shorthand variables', () => {
@@ -26,6 +27,7 @@ describe('renderTemplate', () => {
             date: new Date(2024, 0, 7),
             creationTime: new Date(2024, 2, 30, 22, 45),
             title: '2024-01-07',
+            rolledTodos: '',
         });
 
         expect(output).toBe('2024-01-07 22:45');

@@ -5,6 +5,8 @@ export interface DailyNoteSettings {
     dateFormat: string;
     templateNoteId: string;
     weekStart: WeekStart;
+    rolloverTodos: boolean;
+    rolloverLookbackDays: number;
 }
 
 /** Reads the current plugin settings. Injected so callers do not reach for the Joplin API. */
