@@ -61,6 +61,13 @@ function collectUncheckedItems(body: string): UncheckedItem[] {
             const marker = node.node.getChild('Task')?.getChild('TaskMarker');
             if (!marker || body.slice(marker.from, marker.to) !== UNCHECKED_MARKER) return;
 
+            // An item holding nothing but its marker is a placeholder rather than work.
+            // A bare `- [ ]` is not even a task to the grammar, but `- [ ] ` is, and that
+            // trailing space is what a checkbox button leaves behind -- so without this
+            // an abandoned placeholder rolls forward every day and they accumulate.
+            // Descendants count as content, so an empty parent still carries its children.
+            if (!body.slice(marker.to, node.to).trim()) return;
+
             items.push({
                 from: node.from,
                 to: node.to,

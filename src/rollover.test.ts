@@ -81,6 +81,27 @@ describe('extractUnfinishedTodos', () => {
         expect(extractUnfinishedTodos(body)).toEqual({ rolled: '', markerOffsets: [] });
     });
 
+    test('leaves an empty checkbox placeholder behind', () => {
+        // `- [ ] ` with nothing after it is what a checkbox button leaves. Carrying it
+        // would add one more empty placeholder to every note, day after day.
+        const body = lines('- [ ] ', '- [ ] real work', '- [ ]');
+
+        expect(extractUnfinishedTodos(body).rolled).toBe('- [ ] real work');
+    });
+
+    test('carries an empty parent that still has unfinished children', () => {
+        const body = lines('- [ ] ', '  - [ ] real child');
+
+        expect(extractUnfinishedTodos(body).rolled).toBe(lines('- [ ] ', '  - [ ] real child'));
+    });
+
+    test('does not mark an empty placeholder migrated in the source note', () => {
+        const body = lines('- [ ] ', '- [ ] real work');
+        const { markerOffsets } = extractUnfinishedTodos(body);
+
+        expect(markTodosMigrated(body, markerOffsets)).toBe(lines('- [ ] ', '- [>] real work'));
+    });
+
     test('does not re-roll completed or already-migrated items', () => {
         const body = lines('- [x] done', '- [X] also done', '- [>] migrated yesterday');
 
