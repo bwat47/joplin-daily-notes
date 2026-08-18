@@ -28,6 +28,17 @@ describe('dateFormat', () => {
         expect(() => validateDateFormat(format)).toThrow(DateFormatError);
     });
 
+    test.each(['DDD', 'YYYYYY', 'MMMMM', 'ddddd', 'QQ', 'WWW'])('rejects unsupported repeated token %j', (format) => {
+        expect(() => validateDateFormat(format)).toThrow(DateFormatError);
+    });
+
+    test.each([
+        ['YYYYMMDD', '20240229'],
+        ['[DDD]-YYYYMMDD', 'DDD-20240229'],
+    ])('allows adjacent supported tokens and bracketed repeated letters in %j', (format, expected) => {
+        expect(formatDate(new Date(2024, 1, 29), format)).toBe(expected);
+    });
+
     test.each(['YYYY//MM-DD', 'YYYY/../MM-DD', 'YYYY/[ .. ]/MM-DD'])('rejects invalid generated path %j', (format) => {
         expect(() => buildDailyNoteTarget(new Date(2024, 0, 1), format)).toThrow(DateFormatError);
     });

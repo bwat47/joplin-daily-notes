@@ -25,10 +25,33 @@ const SUPPORTED_TOKENS = [
     'W',
 ] as const;
 
+const MAX_REPEATED_TOKEN_LENGTH: Readonly<Record<string, number>> = {
+    Y: 4,
+    M: 4,
+    D: 2,
+    d: 4,
+    Q: 1,
+    W: 2,
+};
+
 export class DateFormatError extends Error {
     public constructor(message: string) {
         super(message);
         this.name = 'DateFormatError';
+    }
+}
+
+function validateRepeatedToken(format: string, index: number): void {
+    const repeatedTokenLimit = MAX_REPEATED_TOKEN_LENGTH[format[index]];
+    if (repeatedTokenLimit === undefined) return;
+
+    let runEnd = index + 1;
+    while (format[runEnd] === format[index]) runEnd += 1;
+    if (runEnd - index > repeatedTokenLimit) {
+        throw new DateFormatError(
+            `Unsupported repeated date format token "${format.slice(index, runEnd)}". ` +
+                'Wrap literal text in square brackets.'
+        );
     }
 }
 
@@ -44,6 +67,7 @@ export function validateDateFormat(format: string): void {
         }
 
         if (/[A-Za-z]/.test(format[index])) {
+            validateRepeatedToken(format, index);
             const token = SUPPORTED_TOKENS.find((candidate) => format.startsWith(candidate, index));
             if (!token) {
                 const unsupported = format.slice(index).match(/^[A-Za-z]+/)?.[0] ?? format[index];
