@@ -6,32 +6,38 @@ import type { DailyNoteTarget } from './types';
 dayjs.extend(advancedFormat);
 dayjs.extend(isoWeek);
 
-const SUPPORTED_TOKENS = [
-    'YYYY',
-    'MMMM',
-    'dddd',
-    'MMM',
-    'ddd',
-    'YY',
-    'MM',
-    'DD',
-    'dd',
-    'Do',
-    'WW',
-    'M',
-    'D',
-    'd',
-    'Q',
-    'W',
-] as const;
+/**
+ * A set of Day.js tokens the plugin accepts, with the repeat limits Day.js
+ * itself implies.
+ *
+ * Date and time tokens are kept in separate dialects rather than one list
+ * because the two read different clocks. A daily note's date is the day it
+ * belongs to; its time is the moment it was created. The date dialect must also
+ * stay free of time tokens for a second reason: a generated title has to be a
+ * pure function of the calendar date, and an `HH:mm` in the title would produce
+ * a new title -- and therefore a new note -- on every open.
+ */
+interface FormatDialect {
+    kind: 'date' | 'time';
+    label: string;
+    /** Longest first, so a short token never shadows a longer one sharing its prefix. */
+    tokens: readonly string[];
+    /** Longest accepted run per repeated token character. */
+    limits: Readonly<Record<string, number>>;
+}
 
-const MAX_REPEATED_TOKEN_LENGTH: Readonly<Record<string, number>> = {
-    Y: 4,
-    M: 4,
-    D: 2,
-    d: 4,
-    Q: 1,
-    W: 2,
+const DATE_DIALECT: FormatDialect = {
+    kind: 'date',
+    label: 'Date',
+    tokens: ['YYYY', 'MMMM', 'dddd', 'MMM', 'ddd', 'YY', 'MM', 'DD', 'dd', 'Do', 'WW', 'M', 'D', 'd', 'Q', 'W'],
+    limits: { Y: 4, M: 4, D: 2, d: 4, Q: 1, W: 2 },
+};
+
+const TIME_DIALECT: FormatDialect = {
+    kind: 'time',
+    label: 'Time',
+    tokens: ['HH', 'hh', 'mm', 'ss', 'H', 'h', 'm', 's', 'A', 'a'],
+    limits: { H: 2, h: 2, m: 2, s: 2, A: 1, a: 1 },
 };
 
 export class DateFormatError extends Error {
@@ -41,38 +47,38 @@ export class DateFormatError extends Error {
     }
 }
 
-function validateRepeatedToken(format: string, index: number): void {
-    const repeatedTokenLimit = MAX_REPEATED_TOKEN_LENGTH[format[index]];
+function validateRepeatedToken(format: string, index: number, dialect: FormatDialect): void {
+    const repeatedTokenLimit = dialect.limits[format[index]];
     if (repeatedTokenLimit === undefined) return;
 
     let runEnd = index + 1;
     while (format[runEnd] === format[index]) runEnd += 1;
     if (runEnd - index > repeatedTokenLimit) {
         throw new DateFormatError(
-            `Unsupported repeated date format token "${format.slice(index, runEnd)}". ` +
+            `Unsupported repeated ${dialect.kind} format token "${format.slice(index, runEnd)}". ` +
                 'Wrap literal text in square brackets.'
         );
     }
 }
 
-export function validateDateFormat(format: string): void {
-    if (!format.trim()) throw new DateFormatError('Date format cannot be empty.');
+function validateFormat(format: string, dialect: FormatDialect): void {
+    if (!format.trim()) throw new DateFormatError(`${dialect.label} format cannot be empty.`);
 
     for (let index = 0; index < format.length;) {
         if (format[index] === '[') {
             const closingIndex = format.indexOf(']', index + 1);
-            if (closingIndex < 0) throw new DateFormatError('Date format contains an unclosed [literal].');
+            if (closingIndex < 0) throw new DateFormatError(`${dialect.label} format contains an unclosed [literal].`);
             index = closingIndex + 1;
             continue;
         }
 
         if (/[A-Za-z]/.test(format[index])) {
-            validateRepeatedToken(format, index);
-            const token = SUPPORTED_TOKENS.find((candidate) => format.startsWith(candidate, index));
+            validateRepeatedToken(format, index, dialect);
+            const token = dialect.tokens.find((candidate) => format.startsWith(candidate, index));
             if (!token) {
                 const unsupported = format.slice(index).match(/^[A-Za-z]+/)?.[0] ?? format[index];
                 throw new DateFormatError(
-                    `Unsupported date format token near "${unsupported}". Wrap literal text in square brackets.`
+                    `Unsupported ${dialect.kind} format token near "${unsupported}". Wrap literal text in square brackets.`
                 );
             }
             index += token.length;
@@ -83,9 +89,19 @@ export function validateDateFormat(format: string): void {
     }
 }
 
+export function validateDateFormat(format: string): void {
+    validateFormat(format, DATE_DIALECT);
+}
+
 export function formatDate(date: Date, format: string): string {
     validateDateFormat(format);
     return dayjs(date).format(format);
+}
+
+/** Formats a moment using time-of-day tokens only. See `FormatDialect`. */
+export function formatTime(time: Date, format: string): string {
+    validateFormat(format, TIME_DIALECT);
+    return dayjs(time).format(format);
 }
 
 export function toIsoDate(date: Date): string {
@@ -144,17 +160,5 @@ export function buildDailyNoteTarget(date: Date, format: string): DailyNoteTarge
         isoDate: toIsoDate(date),
         folderSegments: segments.slice(0, -1),
         title: segments[segments.length - 1],
-    };
-}
-
-export function dateTemplateValues(date: Date): Record<string, string> {
-    return {
-        date: toIsoDate(date),
-        year: dayjs(date).format('YYYY'),
-        month: dayjs(date).format('MM'),
-        monthName: dayjs(date).format('MMMM'),
-        day: dayjs(date).format('DD'),
-        weekdayName: dayjs(date).format('dddd'),
-        weekNum: dayjs(date).format('WW'),
     };
 }

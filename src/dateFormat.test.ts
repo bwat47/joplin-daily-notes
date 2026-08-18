@@ -2,6 +2,7 @@ import {
     DateFormatError,
     buildDailyNoteTarget,
     formatDate,
+    formatTime,
     parseIsoDate,
     toIsoDate,
     validateDateFormat,
@@ -37,6 +38,18 @@ describe('dateFormat', () => {
         ['[DDD]-YYYYMMDD', 'DDD-20240229'],
     ])('allows adjacent supported tokens and bracketed repeated letters in %j', (format, expected) => {
         expect(formatDate(new Date(2024, 1, 29), format)).toBe(expected);
+    });
+
+    test('formats time-of-day tokens against the supplied moment', () => {
+        const moment = new Date(2024, 0, 7, 9, 5, 3);
+
+        expect(formatTime(moment, 'HH:mm')).toBe('09:05');
+        expect(formatTime(moment, 'h:mm:ss a')).toBe('9:05:03 am');
+        expect(formatTime(moment, '[at] h A')).toBe('at 9 AM');
+    });
+
+    test.each(['', 'YYYY', 'HH-DD', 'HHH', 'AA', 'HH:[mm'])('rejects invalid time format %j', (format) => {
+        expect(() => formatTime(new Date(2024, 0, 7, 9, 5), format)).toThrow(DateFormatError);
     });
 
     test.each(['YYYY//MM-DD', 'YYYY/../MM-DD', 'YYYY/[ .. ]/MM-DD'])('rejects invalid generated path %j', (format) => {

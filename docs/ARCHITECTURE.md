@@ -7,7 +7,7 @@ Daily Notes separates pure date/template logic from Joplin API access and UI reg
 The main responsibilities are:
 
 - **Settings and commands** register the four public settings and two stable command IDs. Desktop receives a Tools submenu and the today shortcut; mobile receives two note-toolbar overflow actions.
-- **Date and template logic** validates the documented Day.js token subset, produces canonical paths using local dates, parses calendar dates without UTC conversion, and expands template variables.
+- **Date and template logic** validates the documented Day.js token subsets, produces canonical paths using local dates, parses calendar dates without UTC conversion, and expands template variables. Date and time tokens form separate dialects: note paths and `{{date:...}}` accept only date tokens, `{{time:...}}` only time-of-day tokens.
 - **Joplin repository** paginates flat folder responses and traverses them by exact title and `parent_id`, paginates notes within the final notebook, creates notes/notebooks, and reads templates. Calendar highlight lookups are served from a short-lived cache; the open-or-create path always reads live.
 - **Daily notes service** owns the open-or-create workflow and serializes mutating operations to prevent rapid local commands from creating duplicate notes.
 - **Calendar dialog and webview** render the calendar, exchange typed messages, and query canonical note existence without creating data.

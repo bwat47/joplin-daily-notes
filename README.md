@@ -56,22 +56,25 @@ The plugin treats a daily note as canonical only when its current notebook path 
 
 Set **Template note ID** to the 32-character Joplin ID of a note. Its Markdown body is copied only when a daily note is first created. To find a note ID, open the note properties dialog or copy the note's Markdown link.
 
-Supported variables are:
+Templates use the same Moment-style tokens as the date format setting above, under two namespaces:
 
-| Variable                | Example                   |
-| ----------------------- | ------------------------- |
-| `{{date}}`              | `2024-01-07`              |
-| `{{date:dddd, MMMM D}}` | `Sunday, January 7`       |
-| `{{time}}`              | `09:05`                   |
-| `{{title}}`             | `2024-01-07`              |
-| `{{year}}`              | `2024`                    |
-| `{{month}}`             | `01`                      |
-| `{{monthName}}`         | `January`                 |
-| `{{day}}`               | `07`                      |
-| `{{weekdayName}}`       | `Sunday`                  |
-| `{{weekNum}}`           | `01` (two-digit ISO week) |
+| Variable       | Example           | Expands to                                    |
+| -------------- | ----------------- | --------------------------------------------- |
+| `{{date:...}}` | `{{date:dddd}}`   | `Sunday` -- the day the note is for           |
+| `{{time:...}}` | `{{time:h:mm A}}` | `9:05 AM` -- when the note was created        |
+| `{{date}}`     | `{{date}}`        | `2024-01-07`, short for `{{date:YYYY-MM-DD}}` |
+| `{{time}}`     | `{{time}}`        | `09:05`, short for `{{time:HH:mm}}`           |
+| `{{title}}`    | `{{title}}`       | `2024-01-07`, the generated note title        |
 
-Custom `{{date:...}}` expressions support the same date tokens listed above. Time tokens such as `HH` and `mm` are not supported; use `{{time}}` for the note creation time.
+`{{date:...}}` accepts the date tokens listed above. `{{time:...}}` accepts time-of-day tokens:
+
+```text
+H HH h hh m mm s ss A a
+```
+
+`{{date:...}}` uses the date you chose for the daily note, while `{{time:...}}` uses the time the note is created. For example, if you create yesterday's note today, the date variables show yesterday and the time variables show the current time. Date tokens only work with `date:`, and time tokens only work with `time:`.
+
+Bracketed literals work in both, for example `{{date:[Week] WW}}`.
 
 Unknown or incorrectly formatted variables are left unchanged. If the configured template cannot be read, the plugin creates an empty daily note and shows a warning.
 
