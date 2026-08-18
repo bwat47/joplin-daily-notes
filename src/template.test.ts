@@ -33,6 +33,26 @@ describe('renderTemplate', () => {
         expect(output).toBe('2024-01-07 22:45');
     });
 
+    test('expands {{todos}} to the rolled block, inner whitespace included', () => {
+        const rolledTodos = '- [ ] Call the dentist\n- [ ] Draft the RFC';
+        const warnings: string[] = [];
+        const output = renderTemplate('## Carried over\n\n{{ todos }}', { ...context, rolledTodos }, (message) =>
+            warnings.push(message)
+        );
+
+        expect(output).toBe(`## Carried over\n\n${rolledTodos}`);
+        expect(warnings).toHaveLength(0);
+    });
+
+    test('expands {{todos}} to nothing without warning when there is nothing to roll', () => {
+        const warnings: string[] = [];
+
+        // The service strips a placeholder alone on its line before rendering, so
+        // what reaches here is a placeholder that has to expand away in place.
+        expect(renderTemplate('Carried: {{todos}}', context, (message) => warnings.push(message))).toBe('Carried: ');
+        expect(warnings).toHaveLength(0);
+    });
+
     test('rejects a time token in the date namespace and a date token in the time namespace', () => {
         const warnings: string[] = [];
         const output = renderTemplate('{{date:HH}} {{time:YYYY}}', context, (message) => warnings.push(message));
