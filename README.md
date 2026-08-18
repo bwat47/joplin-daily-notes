@@ -71,6 +71,8 @@ Supported variables are:
 | `{{weekdayName}}`       | `Sunday`                  |
 | `{{weekNum}}`           | `01` (two-digit ISO week) |
 
+Custom `{{date:...}}` expressions support the same date tokens listed above. Time tokens such as `HH` and `mm` are not supported; use `{{time}}` for the note creation time.
+
 Unknown or incorrectly formatted variables are left unchanged. If the configured template cannot be read, the plugin creates an empty daily note and shows a warning.
 
 ## Calendar markers
