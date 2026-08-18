@@ -33,7 +33,13 @@ Canonical identity is the generated notebook path plus exact note title under th
 - Duplicate notebook segments are treated as an error because the target path is ambiguous.
 - Duplicate exact-title notes in one notebook resolve to the earliest-created note and produce a warning.
 
-The repository deliberately avoids Joplin full-text search. It consumes the default flat, paginated `/folders` response and resolves each segment through `(parent_id, title)` relationships. Exact folder traversal and `folders/:id/notes` queries do not depend on the search index, avoiding duplicate creation while indexing catches up.
+The repository deliberately avoids Joplin full-text search. It consumes the default flat, paginated `/folders` response, resolves each segment through `(parent_id, title)` relationships, and lists `folders/:id/notes` to match titles exactly. This follows from the identity model rather than from any single API limitation:
+
+- **Search cannot express exact-title equality.** The index tokenizes titles, so a `title:` query matches by term, not by literal string, and every result would still need re-filtering in the plugin. Because the date format is user-configurable, generated titles can contain punctuation, quotes or non-Latin text, each of which becomes a separate escaping or tokenizer edge case. `note.title === title` has none of that surface.
+- **The `notebook:` filter cannot express a canonical path.** It scopes by notebook title and includes descendants, so it would silently accept the duplicate segments that the traversal reports as `AmbiguousPathError`. `ensureFolderPath` also needs the flat folder walk in order to create missing segments, so search would not remove the traversal -- only duplicate the leaf lookup beside it.
+- **The index lags writes.** Joplin populates its search tables from a debounced background job, so a note can exist while a search still misses it. On the open-or-create guard that false negative creates a duplicate daily note, which is the same staleness that `findCanonicalNote` already refuses from the local cache.
+
+The cost is that a lookup pages the whole leaf notebook at a hundred notes per request. For a flat date format that grows with the note count -- a few years of dailies is on the order of twenty requests -- while a nested format such as `YYYY/MM` keeps each leaf near a single page. Highlight lookups absorb this through the cache below; the open-or-create path pays it live on a user-initiated action, which is the intended trade.
 
 ## Calendar flow
 
