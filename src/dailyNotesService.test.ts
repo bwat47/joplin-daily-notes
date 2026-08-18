@@ -137,6 +137,19 @@ describe('DailyNotesService', () => {
     describe('todo rollover', () => {
         const source: NoteRecord = { id: 'previous', parent_id: 'folder', title: '2024-01-05' };
         const rolloverSettings: DailyNoteSettings = { ...defaultSettings, rolloverTodos: true };
+        const today = '2024-01-08';
+
+        beforeEach(() => {
+            // Rollover is gated on the note being for today, which reads the wall
+            // clock, so a run straddling midnight would otherwise flake. Only Date
+            // is faked; promises keep using real microtasks.
+            vi.useFakeTimers({ toFake: ['Date'] });
+            vi.setSystemTime(new Date(2024, 0, 8, 9, 0, 0));
+        });
+
+        afterEach(() => {
+            vi.useRealTimers();
+        });
 
         function withPreviousNote(repository: DailyNotesRepository, body: string, template?: string): void {
             vi.mocked(repository.findLatestNoteBefore).mockResolvedValue(source);
@@ -152,7 +165,7 @@ describe('DailyNotesService', () => {
 
             await new DailyNotesService(repository, runtime).openDate(new Date());
 
-            expect(repository.createNote).toHaveBeenCalledWith('folder', expect.any(String), '- [ ] Call the dentist');
+            expect(repository.createNote).toHaveBeenCalledWith('folder', today, '- [ ] Call the dentist');
         });
 
         test('places todos at the {{todos}} variable', async () => {
@@ -235,7 +248,7 @@ describe('DailyNotesService', () => {
 
             await new DailyNotesService(repository, runtime).openDate(new Date());
 
-            expect(repository.createNote).toHaveBeenCalledWith('folder', expect.any(String), '- [ ] Call the dentist');
+            expect(repository.createNote).toHaveBeenCalledWith('folder', today, '- [ ] Call the dentist');
             expect(repository.updateNoteBody).not.toHaveBeenCalled();
             expect(runtime.showWarning).toHaveBeenCalledWith(
                 'Todos were copied, but the previous note changed during rollover and was not modified.'
@@ -287,7 +300,7 @@ describe('DailyNotesService', () => {
             await expect(new DailyNotesService(repository, runtime).openDate(new Date())).resolves.toMatchObject({
                 id: 'created',
             });
-            expect(repository.createNote).toHaveBeenCalledWith('folder', expect.any(String), '');
+            expect(repository.createNote).toHaveBeenCalledWith('folder', today, '');
             expect(runtime.openNote).toHaveBeenCalledWith('created');
         });
 
