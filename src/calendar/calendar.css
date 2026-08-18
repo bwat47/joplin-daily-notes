@@ -62,6 +62,11 @@
 
 .calendar-grid {
     display: grid;
+    gap: 0.2rem;
+}
+
+.calendar-row {
+    display: grid;
     /* minmax(0, ...) so the seven columns shrink to fit the dialog. A rem-based
        minimum cannot shrink, so the last columns were clipped instead. */
     grid-template-columns: repeat(7, minmax(0, 1fr));

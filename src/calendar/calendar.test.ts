@@ -62,7 +62,29 @@ describe('calendar webview', () => {
         expect(document.querySelector('[data-date="2024-01-15"]')?.classList.contains('calendar-date--selected')).toBe(
             true
         );
-        expect(document.querySelectorAll('[data-calendar-grid] > *')).toHaveLength(49);
+        expect(document.querySelectorAll('[data-calendar-grid] > [role="row"]')).toHaveLength(7);
+        expect(document.querySelectorAll('[role="columnheader"]')).toHaveLength(7);
+        expect(document.querySelectorAll('[role="gridcell"]')).toHaveLength(42);
+    });
+
+    test('exposes selection and today as distinct accessible states', () => {
+        vi.useFakeTimers();
+        try {
+            vi.setSystemTime(new Date(2024, 0, 10, 12));
+            setWebviewApi(vi.fn().mockReturnValue(new Promise(() => undefined)));
+            document.body.innerHTML = calendarMarkup();
+
+            initializeCalendar();
+
+            const today = document.querySelector('[data-date="2024-01-10"]');
+            const selected = document.querySelector('[data-date="2024-01-15"]');
+            expect(today?.getAttribute('aria-current')).toBe('date');
+            expect(today?.getAttribute('aria-selected')).toBe('false');
+            expect(selected?.getAttribute('aria-current')).toBeNull();
+            expect(selected?.getAttribute('aria-selected')).toBe('true');
+        } finally {
+            vi.useRealTimers();
+        }
     });
 
     test('updates the selected form value without reloading the same month', async () => {

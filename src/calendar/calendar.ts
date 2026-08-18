@@ -67,6 +67,74 @@ function isExistingDatesResponse(value: unknown): value is QueryExistingDatesRes
     );
 }
 
+interface CalendarRenderState {
+    weekStart: WeekStart;
+    visibleMonthIndex: number;
+    anchorIsoDate: string;
+    selectedIsoDate: string;
+    todayIsoDate: string;
+    existingDates: Set<string>;
+    selectDate(date: Date): void;
+}
+
+function createDateButton(date: Date, state: CalendarRenderState): HTMLButtonElement {
+    const isoDate = toCalendarIsoDate(date);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'calendar-date';
+    button.dataset.date = isoDate;
+    button.textContent = String(date.getDate());
+    button.tabIndex = isoDate === state.anchorIsoDate ? 0 : -1;
+    button.setAttribute('role', 'gridcell');
+    button.setAttribute('aria-selected', isoDate === state.selectedIsoDate ? 'true' : 'false');
+    if (isoDate === state.todayIsoDate) button.setAttribute('aria-current', 'date');
+    button.setAttribute(
+        'aria-label',
+        date.toLocaleDateString('en-US', { dateStyle: 'full' }) +
+            (state.existingDates.has(isoDate) ? ', daily note exists' : '')
+    );
+
+    button.classList.toggle('calendar-date--outside', date.getMonth() !== state.visibleMonthIndex);
+    button.classList.toggle('calendar-date--today', isoDate === state.todayIsoDate);
+    button.classList.toggle('calendar-date--selected', isoDate === state.selectedIsoDate);
+    button.classList.toggle('calendar-date--existing', state.existingDates.has(isoDate));
+
+    const marker = document.createElement('span');
+    marker.className = 'calendar-date__marker';
+    marker.setAttribute('aria-hidden', 'true');
+    button.append(marker);
+
+    button.addEventListener('click', () => state.selectDate(date));
+    return button;
+}
+
+function createCalendarRows(dates: Date[], state: CalendarRenderState): DocumentFragment {
+    const rows = document.createDocumentFragment();
+    const headerRow = document.createElement('div');
+    headerRow.className = 'calendar-row';
+    headerRow.setAttribute('role', 'row');
+    for (const label of WEEKDAY_LABELS[state.weekStart]) {
+        const weekday = document.createElement('div');
+        weekday.className = 'calendar-weekday';
+        weekday.setAttribute('role', 'columnheader');
+        weekday.textContent = label;
+        headerRow.append(weekday);
+    }
+    rows.append(headerRow);
+
+    for (let weekIndex = 0; weekIndex < 6; weekIndex += 1) {
+        const weekRow = document.createElement('div');
+        weekRow.className = 'calendar-row';
+        weekRow.setAttribute('role', 'row');
+        for (const date of dates.slice(weekIndex * 7, weekIndex * 7 + 7)) {
+            weekRow.append(createDateButton(date, state));
+        }
+        rows.append(weekRow);
+    }
+
+    return rows;
+}
+
 function initializeCalendar(): void {
     const root = document.querySelector<HTMLElement>('[data-daily-notes-calendar]');
     if (!root || root.dataset.initialized === 'true') return;
@@ -164,43 +232,17 @@ function initializeCalendar(): void {
         const restoreFocus = focusSelected || calendarGrid.contains(document.activeElement);
 
         calendarHeading.textContent = `${ENGLISH_MONTHS[visibleDate.getMonth()]} ${visibleDate.getFullYear()}`;
-        calendarGrid.replaceChildren();
-
-        for (const label of WEEKDAY_LABELS[weekStart]) {
-            const weekday = document.createElement('div');
-            weekday.className = 'calendar-weekday';
-            weekday.textContent = label;
-            calendarGrid.append(weekday);
-        }
-
-        for (const date of dates) {
-            const isoDate = toCalendarIsoDate(date);
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = 'calendar-date';
-            button.dataset.date = isoDate;
-            button.textContent = String(date.getDate());
-            button.tabIndex = isoDate === anchorIsoDate ? 0 : -1;
-            button.setAttribute(
-                'aria-label',
-                date.toLocaleDateString('en-US', { dateStyle: 'full' }) +
-                    (existingDates.has(isoDate) ? ', daily note exists' : '')
-            );
-
-            button.classList.toggle('calendar-date--outside', date.getMonth() !== visibleDate.getMonth());
-            button.classList.toggle('calendar-date--today', isoDate === todayIsoDate);
-            button.classList.toggle('calendar-date--selected', isoDate === selectedIsoDate);
-            button.classList.toggle('calendar-date--existing', existingDates.has(isoDate));
-            button.setAttribute('aria-current', isoDate === selectedIsoDate ? 'date' : 'false');
-
-            const marker = document.createElement('span');
-            marker.className = 'calendar-date__marker';
-            marker.setAttribute('aria-hidden', 'true');
-            button.append(marker);
-
-            button.addEventListener('click', () => selectDate(date, true));
-            calendarGrid.append(button);
-        }
+        calendarGrid.replaceChildren(
+            createCalendarRows(dates, {
+                weekStart,
+                visibleMonthIndex: visibleDate.getMonth(),
+                anchorIsoDate,
+                selectedIsoDate,
+                todayIsoDate,
+                existingDates,
+                selectDate: (date) => selectDate(date, true),
+            })
+        );
 
         if (restoreFocus) {
             calendarGrid.querySelector<HTMLButtonElement>(`[data-date="${anchorIsoDate}"]`)?.focus();
