@@ -63,6 +63,17 @@ describe('DailyNotesService', () => {
         expect(runtime.openNote).toHaveBeenCalledWith('created');
     });
 
+    test('preserves intentional blank lines in a template', async () => {
+        const repository = createRepository();
+        const template = '# Heading\n\n\n\n```text\none\n\n\n\ntwo\n```';
+        vi.mocked(repository.getNoteBody).mockResolvedValue(template);
+        const runtime = createRuntime({ ...defaultSettings, templateNoteId: 'template' });
+
+        await new DailyNotesService(repository, runtime).openDate(new Date(2024, 0, 1));
+
+        expect(repository.createNote).toHaveBeenCalledWith('folder', '2024-01-01', template);
+    });
+
     test('creates an empty note and warns when the template cannot be read', async () => {
         const repository = createRepository();
         vi.mocked(repository.getNoteBody).mockRejectedValue(new Error('missing'));
@@ -134,13 +145,17 @@ describe('DailyNotesService', () => {
 
         test('places todos at the {{todos}} variable', async () => {
             const repository = createRepository();
-            withPreviousNote(repository, '- [ ] Call the dentist', '## Carried over\n{{todos}}\n\n## Today');
+            withPreviousNote(
+                repository,
+                '- [ ] Call the dentist',
+                '## Carried over\n{{todos}}\n\n## Today\n\n\n\n```text\nkeep blank lines\n```'
+            );
             const runtime = createRuntime({ ...rolloverSettings, templateNoteId: 'template' });
 
             await new DailyNotesService(repository, runtime).openDate(new Date());
 
             expect(vi.mocked(repository.createNote).mock.calls[0][2]).toBe(
-                '## Carried over\n- [ ] Call the dentist\n\n## Today'
+                '## Carried over\n- [ ] Call the dentist\n\n## Today\n\n\n\n```text\nkeep blank lines\n```'
             );
         });
 

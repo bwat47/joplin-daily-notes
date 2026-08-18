@@ -1,4 +1,4 @@
-import { collapseBlankRuns, extractUnfinishedTodos, markTodosMigrated } from './rollover';
+import { extractUnfinishedTodos, markTodosMigrated } from './rollover';
 
 function lines(...values: string[]): string {
     return values.join('\n');
@@ -136,17 +136,5 @@ describe('markTodosMigrated', () => {
         const { markerOffsets } = extractUnfinishedTodos(body);
 
         expect(markTodosMigrated(body, markerOffsets)).toBe(lines('- [>] a', '- [>] b', '- [>] c'));
-    });
-});
-
-describe('collapseBlankRuns', () => {
-    test('collapses the gap an empty expansion leaves behind', () => {
-        expect(collapseBlankRuns('## Carried over\n\n\n\n## Today')).toBe('## Carried over\n\n## Today');
-    });
-
-    test('keeps a single blank line between blocks', () => {
-        const body = '## One\n\nprose\n\n## Two';
-
-        expect(collapseBlankRuns(body)).toBe(body);
     });
 });

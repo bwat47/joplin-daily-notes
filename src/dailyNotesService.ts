@@ -1,6 +1,6 @@
 import { buildDailyNoteTarget, parseIsoDate, toIsoDate, validateFolderName } from './dateFormat';
 import { logger } from './logger';
-import { collapseBlankRuns, extractUnfinishedTodos, markTodosMigrated } from './rollover';
+import { extractUnfinishedTodos, markTodosMigrated } from './rollover';
 import type { DailyNoteSettings, DailyNoteTarget, NoteRecord, SettingsReader } from './types';
 import { renderTemplate } from './template';
 
@@ -208,9 +208,9 @@ export class DailyNotesService {
             logger.warn(message)
         );
 
-        if (!rolledTodos || TODOS_PLACEHOLDER.test(template)) return collapseBlankRuns(rendered);
+        if (!rolledTodos || TODOS_PLACEHOLDER.test(template)) return rendered;
 
         logger.warn('The template has no {{todos}} variable; rolled todos were appended to the end of the note.');
-        return collapseBlankRuns(`${rendered.trimEnd()}\n\n${rolledTodos}`);
+        return `${rendered.trimEnd()}\n\n${rolledTodos}`;
     }
 }

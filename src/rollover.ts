@@ -121,8 +121,3 @@ export function markTodosMigrated(body: string, markerOffsets: number[]): string
 
     return result;
 }
-
-/** Collapses runs of blank lines left behind when a template expands `{{todos}}` to nothing. */
-export function collapseBlankRuns(body: string): string {
-    return body.replace(/(?:\r?\n){3,}/g, '\n\n');
-}
