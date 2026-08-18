@@ -14,21 +14,21 @@ Daily Notes provides a small, Obsidian-style daily note workflow for Joplin. Ope
 
 ## Commands
 
-| Command | Default desktop shortcut |
-| --- | --- |
-| Open today's daily note | `Ctrl+Alt+D` (`Cmd+Alt+D` on macOS) |
-| Open daily note calendar | None |
+| Command                  | Default desktop shortcut            |
+| ------------------------ | ----------------------------------- |
+| Open today's daily note  | `Ctrl+Alt+D` (`Cmd+Alt+D` on macOS) |
+| Open daily note calendar | `Ctrl+Alt+O` (`Cmd+Alt+O` on macOS) |
 
 On desktop, both commands are available from **Tools → Daily Notes**, the command palette, and the keyboard shortcut editor. On mobile, they are available from the note toolbar overflow menu.
 
 ## Settings
 
-| Setting | Default | Description |
-| --- | --- | --- |
-| Daily notes notebook | `Daily Notes` | Top-level notebook that contains daily notes. |
-| Date format | `YYYY-MM-DD` | Note name and optional sub-notebook hierarchy. |
-| Template note ID | Empty | ID of a note whose Markdown body initializes new daily notes. |
-| First day of week | Sunday | Sunday-first or Monday-first calendar layout. |
+| Setting              | Default       | Description                                                   |
+| -------------------- | ------------- | ------------------------------------------------------------- |
+| Daily notes notebook | `Daily Notes` | Top-level notebook that contains daily notes.                 |
+| Date format          | `YYYY-MM-DD`  | Note name and optional sub-notebook hierarchy.                |
+| Template note ID     | Empty         | ID of a note whose Markdown body initializes new daily notes. |
+| First day of week    | Sunday        | Sunday-first or Monday-first calendar layout.                 |
 
 The daily notes notebook must be a single top-level notebook name. If it does not exist, the plugin creates it.
 
@@ -58,18 +58,18 @@ Set **Template note ID** to the 32-character Joplin ID of a note. Its Markdown b
 
 Supported variables are:
 
-| Variable | Example |
-| --- | --- |
-| `{{date}}` | `2024-01-07` |
-| `{{date:dddd, MMMM D}}` | `Sunday, January 7` |
-| `{{time}}` | `09:05` |
-| `{{title}}` | `2024-01-07` |
-| `{{year}}` | `2024` |
-| `{{month}}` | `01` |
-| `{{monthName}}` | `January` |
-| `{{day}}` | `07` |
-| `{{weekdayName}}` | `Sunday` |
-| `{{weekNum}}` | `01` (two-digit ISO week) |
+| Variable                | Example                   |
+| ----------------------- | ------------------------- |
+| `{{date}}`              | `2024-01-07`              |
+| `{{date:dddd, MMMM D}}` | `Sunday, January 7`       |
+| `{{time}}`              | `09:05`                   |
+| `{{title}}`             | `2024-01-07`              |
+| `{{year}}`              | `2024`                    |
+| `{{month}}`             | `01`                      |
+| `{{monthName}}`         | `January`                 |
+| `{{day}}`               | `07`                      |
+| `{{weekdayName}}`       | `Sunday`                  |
+| `{{weekNum}}`           | `01` (two-digit ISO week) |
 
 Unknown or incorrectly formatted variables are left unchanged. If the configured template cannot be read, the plugin creates an empty daily note and shows a warning.
 

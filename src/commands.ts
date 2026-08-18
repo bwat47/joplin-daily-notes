@@ -69,7 +69,7 @@ export async function registerCommands(
             },
             {
                 commandName: COMMAND_IDS.openCalendar,
-                accelerator: 'Alt+Shift+O',
+                accelerator: 'CmdOrCtrl+Alt+O',
             },
         ],
         MenuItemLocation.Tools
