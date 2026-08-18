@@ -6,6 +6,15 @@ import { renderTemplate } from './template';
 
 /** Matches the same spellings `renderTemplate` accepts, including inner whitespace. */
 const TODOS_PLACEHOLDER = /{{\s*todos\s*}}/;
+/**
+ * A `{{todos}}` alone on its line, with one line break that followed it.
+ *
+ * On a day with nothing to roll the variable expands to an empty string, which
+ * leaves the blank lines that separated it from its neighbours stacked into a
+ * headed but empty section. Taking the line and one adjacent break closes that
+ * gap while leaving blank lines elsewhere in the template alone.
+ */
+const EMPTY_TODOS_LINE = /^[ \t]*{{\s*todos\s*}}[ \t]*(?:\r?\n[ \t]*)?(?:\r?\n|$)/gm;
 
 export interface DailyNotesRuntime {
     readSettings: SettingsReader;
@@ -204,7 +213,10 @@ export class DailyNotesService {
             return rolledTodos;
         }
 
-        const rendered = renderTemplate(template, { date, creationTime: new Date(), title, rolledTodos }, (message) =>
+        // A placeholder that shares its line with other text is left to expand away
+        // to nothing; only one occupying a line of its own takes that line with it.
+        const source = rolledTodos ? template : template.replace(EMPTY_TODOS_LINE, '');
+        const rendered = renderTemplate(source, { date, creationTime: new Date(), title, rolledTodos }, (message) =>
             logger.warn(message)
         );
 

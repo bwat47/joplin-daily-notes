@@ -107,7 +107,8 @@ Place the block with the `{{todos}}` template variable:
 ```
 
 If your template has no `{{todos}}` variable, the todos are appended to the end of the note. With no template
-configured, the new note contains just the todos.
+configured, the new note contains just the todos. On a day with nothing to carry, a `{{todos}}` on a line of its
+own is removed with that line, so the template leaves no empty section behind.
 
 Details worth knowing:
 

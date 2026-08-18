@@ -159,6 +159,30 @@ describe('DailyNotesService', () => {
             );
         });
 
+        // Nothing to roll, so the placeholder has to disappear without leaving the
+        // headed but empty section that expanding it in place would produce.
+        test.each([
+            [
+                'takes its own line with it',
+                '## Carried over\n\n{{todos}}\n\n## Today\n',
+                '## Carried over\n\n## Today\n',
+            ],
+            [
+                'leaves blank lines elsewhere alone',
+                '{{todos}}\n\n## Today\n\n\n\n```text\na\n\n\nb\n```',
+                '## Today\n\n\n\n```text\na\n\n\nb\n```',
+            ],
+            ['expands away in place when inline', 'Carried: {{todos}} (none today)\n', 'Carried:  (none today)\n'],
+        ])('with nothing to roll, {{todos}} %s', async (_name, template, expected) => {
+            const repository = createRepository();
+            vi.mocked(repository.getNoteBody).mockResolvedValue(template);
+            const runtime = createRuntime({ ...rolloverSettings, templateNoteId: 'template' });
+
+            await new DailyNotesService(repository, runtime).openDate(new Date());
+
+            expect(vi.mocked(repository.createNote).mock.calls[0][2]).toBe(expected);
+        });
+
         test('appends todos when the template has no {{todos}} variable', async () => {
             const repository = createRepository();
             withPreviousNote(repository, '- [ ] Call the dentist', '## Today\n');
