@@ -121,6 +121,10 @@ Details worth knowing:
 - If the previous note changes while rollover is running, its todos are copied but the previous note is left untouched,
   and the plugin displays a warning rather than overwriting the edit.
 - Re-opening a note rolls nothing over a second time: the note already exists, and `- [>]` is not an open task.
+- **Create today's note on one device.** If another device already created it but has not synced yet, this device
+  creates its own copy and rolls into that one. After sync the carried todos may sit in the duplicate rather than
+  the note you open, while the source reads as migrated. Nothing is deleted -- the source still holds the full
+  text of every item -- but you may have to merge the two notes by hand.
 
 ## Calendar markers
 
