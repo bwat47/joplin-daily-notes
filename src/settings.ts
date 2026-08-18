@@ -13,6 +13,9 @@ const SETTING_KEYS = {
 
 const SETTING_SECTION = 'dailyNotes';
 
+/** Shared by the registered setting and by the clamp that re-checks what it returns. */
+const LOOKBACK_DAYS = { default: 30, minimum: 1, maximum: 365 } as const;
+
 export async function registerSettings(): Promise<void> {
     await joplin.settings.registerSection(SETTING_SECTION, {
         label: 'Daily Notes',
@@ -67,12 +70,12 @@ export async function registerSettings(): Promise<void> {
                 'and mark them [>] in that earlier note.',
         },
         [SETTING_KEYS.rolloverLookbackDays]: {
-            value: 30,
+            value: LOOKBACK_DAYS.default,
             type: SettingItemType.Int,
             section: SETTING_SECTION,
             public: true,
-            minimum: 1,
-            maximum: 365,
+            minimum: LOOKBACK_DAYS.minimum,
+            maximum: LOOKBACK_DAYS.maximum,
             label: 'Rollover lookback (days)',
             description: 'How far back to search for the previous daily note.',
         },
@@ -82,8 +85,8 @@ export async function registerSettings(): Promise<void> {
 /** Joplin can return a stale or hand-edited value, so the search stays bounded regardless. */
 function clampLookback(value: unknown): number {
     const days = Math.trunc(Number(value));
-    if (!Number.isFinite(days) || days < 1) return 30;
-    return Math.min(days, 365);
+    if (!Number.isFinite(days) || days < LOOKBACK_DAYS.minimum) return LOOKBACK_DAYS.default;
+    return Math.min(days, LOOKBACK_DAYS.maximum);
 }
 
 export async function readSettings(): Promise<DailyNoteSettings> {
