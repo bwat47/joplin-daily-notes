@@ -1,3 +1,6 @@
+> [!note]
+> This plugin is developed/maintained using AI
+
 # Daily Notes for Joplin
 
 Daily Notes adds an Obsidian-style daily note workflow to Joplin. Open today's note directly or choose any date from a calendar; the plugin creates missing notebooks and notes automatically.
