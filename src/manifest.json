@@ -11,7 +11,22 @@
     "repository_url": "https://github.com/bwat47/joplin-daily-notes",
     "keywords": ["daily notes", "journal", "calendar"],
     "categories": ["productivity"],
-    "screenshots": [],
-    "icons": {},
-    "promo_tile": {}
+    "screenshots": [
+        { "src": "images/screenshot1.png", "label": "Daily Notes screenshot 1" },
+        { "src": "images/screenshot2.png", "label": "Daily Notes screenshot 2" },
+        { "src": "images/screenshot3.png", "label": "Daily Notes screenshot 3" }
+    ],
+    "icons": {
+        "256": "images/256.png",
+        "128": "images/128.png",
+        "64": "images/64.png",
+        "48": "images/48.png",
+        "32": "images/32.png",
+        "24": "images/24.png",
+        "16": "images/16.png"
+    },
+    "promo_tile": {
+        "src": "images/daily_notes_promo_tile.png",
+        "label": "Daily Notes Promo Tile"
+    }
 }
