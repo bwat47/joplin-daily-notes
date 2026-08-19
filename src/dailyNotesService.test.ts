@@ -7,6 +7,7 @@ const defaultSettings: DailyNoteSettings = {
     templateNoteId: '',
     weekStart: 'sunday',
     rolloverTodos: false,
+    keepEmptyTodoLine: false,
     rolloverLookbackDays: 30,
 };
 
@@ -206,6 +207,20 @@ describe('DailyNotesService', () => {
             await new DailyNotesService(repository, runtime).openDate(new Date());
 
             expect(vi.mocked(repository.createNote).mock.calls[0][2]).toBe(expected);
+        });
+
+        test('keeps a standalone {{todos}} line empty when configured', async () => {
+            const repository = createRepository();
+            vi.mocked(repository.getNoteBody).mockResolvedValue('## Carried over\n\n{{todos}}\n\n## Today\n');
+            const runtime = createRuntime({
+                ...rolloverSettings,
+                templateNoteId: 'template',
+                keepEmptyTodoLine: true,
+            });
+
+            await new DailyNotesService(repository, runtime).openDate(new Date());
+
+            expect(vi.mocked(repository.createNote).mock.calls[0][2]).toBe('## Carried over\n\n\n\n## Today\n');
         });
 
         test('appends todos when the template has no {{todos}} variable', async () => {

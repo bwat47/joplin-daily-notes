@@ -6,6 +6,7 @@ export interface DailyNoteSettings {
     templateNoteId: string;
     weekStart: WeekStart;
     rolloverTodos: boolean;
+    keepEmptyTodoLine: boolean;
     rolloverLookbackDays: number;
 }
 

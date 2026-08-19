@@ -22,14 +22,15 @@ On desktop, both commands are available from **Tools → Daily Notes**, the comm
 
 ## Settings
 
-| Setting                       | Default       | Description                                                   |
-| ----------------------------- | ------------- | ------------------------------------------------------------- |
-| Daily notes notebook          | `Daily Notes` | Single top-level notebook; created if missing.                |
-| Date format                   | `YYYY-MM-DD`  | Note name and optional sub-notebook hierarchy.                |
-| Template note ID              | Empty         | ID of a note whose Markdown body initializes new daily notes. |
-| First day of week             | Sunday        | Sunday-first or Monday-first calendar layout.                 |
-| Roll unfinished todos forward | Off           | Carry open tasks from the previous daily note into today's.   |
-| Rollover lookback (days)      | 30            | How far back to search for the previous daily note.           |
+| Setting                          | Default       | Description                                                   |
+| -------------------------------- | ------------- | ------------------------------------------------------------- |
+| Daily notes notebook             | `Daily Notes` | Single top-level notebook; created if missing.                |
+| Date format                      | `YYYY-MM-DD`  | Note name and optional sub-notebook hierarchy.                |
+| Template note ID                 | Empty         | ID of a note whose Markdown body initializes new daily notes. |
+| First day of week                | Sunday        | Sunday-first or Monday-first calendar layout.                 |
+| Roll unfinished todos forward    | Off           | Carry open tasks from the previous daily note into today's.   |
+| Keep empty todo placeholder line | Off           | Preserve the `{{todos}}` line when there is nothing to carry. |
+| Rollover lookback (days)         | 30            | How far back to search for the previous daily note.           |
 
 ### Date format and sub-notebooks
 
@@ -92,7 +93,7 @@ Place the block with the `{{todos}}` template variable:
 - [ ]
 ```
 
-Without `{{todos}}`, carried tasks are appended to the note; without a template, they become the entire note. A standalone `{{todos}}` line is removed when there is nothing to carry.
+Without `{{todos}}`, carried tasks are appended to the note; without a template, they become the entire note. By default, a standalone `{{todos}}` line is removed when there is nothing to carry. Enable **Keep empty todo placeholder line** to preserve it as an empty line instead.
 
 Create today's note on only one device at a time. If two unsynced devices create it, rollover may target a duplicate that must be merged manually. See [todo rollover behavior](docs/TODO_ROLLOVER.md) for selection rules and edge cases.
 

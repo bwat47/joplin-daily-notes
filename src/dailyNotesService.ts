@@ -230,8 +230,10 @@ export class DailyNotesService {
         }
 
         // A placeholder that shares its line with other text is left to expand away
-        // to nothing; only one occupying a line of its own takes that line with it.
-        const source = rolledTodos ? template : template.replace(EMPTY_TODOS_LINE, '');
+        // to nothing. By default, one occupying a line of its own takes that line
+        // with it; the setting preserves the template's whitespace exactly instead.
+        const removeEmptyTodosLine = !rolledTodos && !settings.keepEmptyTodoLine;
+        const source = removeEmptyTodosLine ? template.replace(EMPTY_TODOS_LINE, '') : template;
         const rendered = renderTemplate(source, { date, creationTime: new Date(), title, rolledTodos }, (message) =>
             logger.warn(message)
         );

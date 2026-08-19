@@ -20,6 +20,7 @@ const readSettings: SettingsReader = async () => ({
     templateNoteId: '',
     weekStart: 'sunday',
     rolloverTodos: false,
+    keepEmptyTodoLine: false,
     rolloverLookbackDays: 30,
 });
 

@@ -35,7 +35,7 @@ Use `{{todos}}` to choose where carried tasks appear:
 - [ ]
 ```
 
-Without `{{todos}}`, carried tasks are appended to the template. Without a template, the new note contains only the carried tasks. If there is nothing to carry, a `{{todos}}` variable on its own line is removed with that line.
+Without `{{todos}}`, carried tasks are appended to the template. Without a template, the new note contains only the carried tasks. If there is nothing to carry, a `{{todos}}` variable on its own line is removed with that line by default. Enable **Keep empty todo placeholder line** to preserve it as an empty line instead.
 
 ## Sync caveat
 

@@ -8,6 +8,7 @@ const SETTING_KEYS = {
     templateNoteId: 'templateNoteId',
     weekStart: 'weekStart',
     rolloverTodos: 'rolloverTodos',
+    keepEmptyTodoLine: 'keepEmptyTodoLine',
     rolloverLookbackDays: 'rolloverLookbackDays',
 } as const;
 
@@ -69,6 +70,14 @@ export async function registerSettings(): Promise<void> {
                 "Copy unfinished tasks from the most recent earlier daily note into today's new note, " +
                 'and mark them [>] in that earlier note.',
         },
+        [SETTING_KEYS.keepEmptyTodoLine]: {
+            value: false,
+            type: SettingItemType.Bool,
+            section: SETTING_SECTION,
+            public: true,
+            label: 'Keep empty todo placeholder line',
+            description: 'Keep the line occupied by {{todos}} when there are no unfinished todos to roll over.',
+        },
         [SETTING_KEYS.rolloverLookbackDays]: {
             value: LOOKBACK_DAYS.default,
             type: SettingItemType.Int,
@@ -99,6 +108,7 @@ export async function readSettings(): Promise<DailyNoteSettings> {
         templateNoteId: String(values[SETTING_KEYS.templateNoteId] ?? ''),
         weekStart,
         rolloverTodos: values[SETTING_KEYS.rolloverTodos] === true,
+        keepEmptyTodoLine: values[SETTING_KEYS.keepEmptyTodoLine] === true,
         rolloverLookbackDays: clampLookback(values[SETTING_KEYS.rolloverLookbackDays]),
     };
 }
