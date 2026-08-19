@@ -51,7 +51,7 @@ Supported Moment-style date tokens are:
 YYYY YY M MM MMM MMMM D DD d dd ddd dddd Do Q W WW
 ```
 
-Wrap literal letters in square brackets, for example `[Week]-WW`. Textual month and weekday names are English in version 1.
+Wrap literal letters in square brackets, for example `[Week]-WW`.
 
 The plugin treats a daily note as canonical only when its current notebook path and title exactly match the active settings. Renaming or moving a daily note means it will no longer appear as existing in the calendar, and opening that date can create a new canonical note.
 
@@ -91,8 +91,8 @@ note, so a gap over a weekend or a holiday makes no difference. **Rollover lookb
 
 Once the todos are carried forward, the plugin rewrites them in the source note from `- [ ]` to `- [>]` -- the
 bullet-journal marker for "migrated forward". Nothing is deleted, and the item is no longer a checkbox, so the
-previous note stops reporting the task as open to anything that scans note bodies for unfinished tasks. `- [>]` is
-deliberately not `- [x]`: the task was moved, not completed, and the old note should not claim otherwise.
+previous note stops reporting the task as open to anything that scans note bodies for unfinished tasks (e.g. the task progress indicator in Joplin's note list). `- [>]` is
+deliberately not `- [x]`: the task was moved, not completed.
 
 Place the block with the `{{todos}}` template variable:
 
