@@ -210,13 +210,35 @@ describe('DailyNotesService', () => {
 
         test('appends todos when the template has no {{todos}} variable', async () => {
             const repository = createRepository();
-            withPreviousNote(repository, '- [ ] Call the dentist', '## Today\n');
+            const template = '## Today\n';
+            withPreviousNote(repository, '- [ ] Call the dentist', template);
             const runtime = createRuntime({ ...rolloverSettings, templateNoteId: 'template' });
 
             await new DailyNotesService(repository, runtime).openDate(new Date());
 
             // Never dropped: they are already marked migrated in the source note.
-            expect(vi.mocked(repository.createNote).mock.calls[0][2]).toBe('## Today\n\n- [ ] Call the dentist');
+            expect(vi.mocked(repository.createNote).mock.calls[0][2]).toBe(`${template}\n\n- [ ] Call the dentist`);
+        });
+
+        test('preserves trailing template whitespace when appending todos', async () => {
+            const repository = createRepository();
+            const template = '## Today\n\n  \n';
+            withPreviousNote(repository, '- [ ] Call the dentist', template);
+            const runtime = createRuntime({ ...rolloverSettings, templateNoteId: 'template' });
+
+            await new DailyNotesService(repository, runtime).openDate(new Date());
+
+            expect(vi.mocked(repository.createNote).mock.calls[0][2]).toBe(`${template}\n\n- [ ] Call the dentist`);
+        });
+
+        test('does not add leading separators when an empty template is configured', async () => {
+            const repository = createRepository();
+            withPreviousNote(repository, '- [ ] Call the dentist', '');
+            const runtime = createRuntime({ ...rolloverSettings, templateNoteId: 'template' });
+
+            await new DailyNotesService(repository, runtime).openDate(new Date());
+
+            expect(vi.mocked(repository.createNote).mock.calls[0][2]).toBe('- [ ] Call the dentist');
         });
 
         test('marks the source note only after the new note exists', async () => {

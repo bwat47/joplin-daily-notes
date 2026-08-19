@@ -226,6 +226,6 @@ export class DailyNotesService {
         if (!rolledTodos || TODOS_PLACEHOLDER.test(template)) return rendered;
 
         logger.warn('The template has no {{todos}} variable; rolled todos were appended to the end of the note.');
-        return `${rendered.trimEnd()}\n\n${rolledTodos}`;
+        return rendered ? `${rendered}\n\n${rolledTodos}` : rolledTodos;
     }
 }
