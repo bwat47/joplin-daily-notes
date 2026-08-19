@@ -8,7 +8,7 @@ Daily Notes adds an Obsidian-style daily note workflow to Joplin. Open today's n
 - Organize notes into a configurable date-based notebook hierarchy.
 - Initialize notes from a template with date, time, title, and todo variables.
 - Carry unfinished todos forward from the previous daily note.
-- Highlight existing daily notes in a Sunday- or Monday-first calendar.
+- Highlight existing daily notes in a calendar.
 - Use the same commands on desktop and mobile.
 
 ## Commands
@@ -93,7 +93,7 @@ Place the block with the `{{todos}}` template variable:
 - [ ]
 ```
 
-Without `{{todos}}`, carried tasks are appended to the note; without a template, they become the entire note. By default, a standalone `{{todos}}` line is removed when there is nothing to carry. Enable **Keep empty todo placeholder line** to preserve it as an empty line instead.
+Without `{{todos}}`, carried tasks are appended to the bottom of the note; without a template, they become the entire note. By default, a standalone `{{todos}}` line is removed when there is nothing to carry. Enable **Keep empty todo placeholder line** to preserve it as an empty line instead.
 
 Create today's note on only one device at a time. If two unsynced devices create it, rollover may target a duplicate that must be merged manually. See [todo rollover behavior](docs/TODO_ROLLOVER.md) for selection rules and edge cases.
 
