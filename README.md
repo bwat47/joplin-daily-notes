@@ -5,10 +5,10 @@ Daily Notes adds an Obsidian-style daily note workflow to Joplin. Open today's n
 ## Features
 
 - Open or create a daily note for today or any calendar date.
-- Organize notes into configurable date-based notebook hierarchies.
-- Initialize notes from templates with date, time, title, and todo variables.
+- Organize notes into a configurable date-based notebook hierarchy.
+- Initialize notes from a template with date, time, title, and todo variables.
 - Carry unfinished todos forward from the previous daily note.
-- Highlight existing notes in a Sunday- or Monday-first calendar.
+- Highlight existing daily notes in a Sunday- or Monday-first calendar.
 - Use the same commands on desktop and mobile.
 
 ## Commands
@@ -49,7 +49,7 @@ YYYY YY M MM MMM MMMM D DD d dd ddd dddd Do Q W WW
 
 Wrap literals in square brackets, for example `[Week]-WW`.
 
-A calendar dot marks a note only when its title and notebook path match the current settings. Renaming or moving a note removes its marker, and opening that date can create a new matching note. Marker checks are read-only; if they fail, dates remain selectable and the calendar shows a warning.
+A calendar dot marks a note only when its title and notebook path match the current settings. Renaming or moving a note removes its marker, and opening that date can create a new matching note.
 
 ## Templates
 
