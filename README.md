@@ -97,6 +97,10 @@ Without `{{todos}}`, carried tasks are appended to the bottom of the note; witho
 
 Create today's note on only one device at a time. If two unsynced devices create it, rollover may target a duplicate that must be merged manually. See [todo rollover behavior](docs/TODO_ROLLOVER.md) for selection rules and edge cases.
 
+## Limitations/Non Goals
+
+This plugin has an intentionally simple workflow (one note per day in a single folder heirarchy) and isn't intended to be a full on journaling system or to support features like multiple folder heirarchies, multiple notes per day, creating/inserting links, etc...
+
 ## Development
 
 ```bash
