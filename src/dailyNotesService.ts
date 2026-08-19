@@ -47,6 +47,19 @@ function noRollover(): PendingRollover {
     return { rolled: '', source: null, sourceBody: '', markerOffsets: [] };
 }
 
+/** Appends a block after at least one blank line without discarding trailing whitespace. */
+function appendAfterBlankLine(content: string, block: string): string {
+    if (!content) return block;
+
+    const trailingWhitespace = content.slice(content.trimEnd().length);
+    const lineBreakCount = trailingWhitespace.match(/\r\n|\r|\n/g)?.length ?? 0;
+    const endsWithLineBreak = trailingWhitespace.endsWith('\n') || trailingWhitespace.endsWith('\r');
+    const missingLineBreaks = Math.max(2 - lineBreakCount, endsWithLineBreak ? 0 : 1);
+    const lineBreak = content.includes('\r\n') ? '\r\n' : '\n';
+
+    return `${content}${lineBreak.repeat(missingLineBreaks)}${block}`;
+}
+
 function isToday(date: Date): boolean {
     return toIsoDate(date) === toIsoDate(new Date());
 }
@@ -226,6 +239,6 @@ export class DailyNotesService {
         if (!rolledTodos || TODOS_PLACEHOLDER.test(template)) return rendered;
 
         logger.warn('The template has no {{todos}} variable; rolled todos were appended to the end of the note.');
-        return rendered ? `${rendered}\n\n${rolledTodos}` : rolledTodos;
+        return appendAfterBlankLine(rendered, rolledTodos);
     }
 }

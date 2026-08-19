@@ -210,19 +210,30 @@ describe('DailyNotesService', () => {
 
         test('appends todos when the template has no {{todos}} variable', async () => {
             const repository = createRepository();
-            const template = '## Today\n';
+            const template = '## Stuff\n\n## Misc Notes\n';
             withPreviousNote(repository, '- [ ] Call the dentist', template);
             const runtime = createRuntime({ ...rolloverSettings, templateNoteId: 'template' });
 
             await new DailyNotesService(repository, runtime).openDate(new Date());
 
             // Never dropped: they are already marked migrated in the source note.
-            expect(vi.mocked(repository.createNote).mock.calls[0][2]).toBe(`${template}\n\n- [ ] Call the dentist`);
+            expect(vi.mocked(repository.createNote).mock.calls[0][2]).toBe(`${template}\n- [ ] Call the dentist`);
         });
 
         test('preserves trailing template whitespace when appending todos', async () => {
             const repository = createRepository();
             const template = '## Today\n\n  \n';
+            withPreviousNote(repository, '- [ ] Call the dentist', template);
+            const runtime = createRuntime({ ...rolloverSettings, templateNoteId: 'template' });
+
+            await new DailyNotesService(repository, runtime).openDate(new Date());
+
+            expect(vi.mocked(repository.createNote).mock.calls[0][2]).toBe(`${template}- [ ] Call the dentist`);
+        });
+
+        test('adds a full blank-line separator when the template has no trailing newline', async () => {
+            const repository = createRepository();
+            const template = '## Today';
             withPreviousNote(repository, '- [ ] Call the dentist', template);
             const runtime = createRuntime({ ...rolloverSettings, templateNoteId: 'template' });
 
