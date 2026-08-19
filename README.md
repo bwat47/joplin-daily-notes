@@ -1,16 +1,14 @@
 # Daily Notes for Joplin
 
-Daily Notes provides a small, Obsidian-style daily note workflow for Joplin. Open today's note directly or choose any date from a calendar. The plugin creates the required notebook hierarchy and note when they do not already exist.
+Daily Notes adds an Obsidian-style daily note workflow to Joplin. Open today's note directly or choose any date from a calendar; the plugin creates missing notebooks and notes automatically.
 
 ## Features
 
-- Open or create today's daily note.
-- Choose any date from a calendar and open or create its note.
-- Highlight dates that already have a canonical daily note.
-- Build sub-notebooks from the configured date format.
-- Initialize new notes from a Joplin note template.
-- Roll unfinished todos forward from the previous daily note.
-- Use Sunday-first or Monday-first calendar weeks.
+- Open or create a daily note for today or any calendar date.
+- Organize notes into configurable date-based notebook hierarchies.
+- Initialize notes from templates with date, time, title, and todo variables.
+- Carry unfinished todos forward from the previous daily note.
+- Highlight existing notes in a Sunday- or Monday-first calendar.
 - Use the same commands on desktop and mobile.
 
 ## Commands
@@ -20,24 +18,22 @@ Daily Notes provides a small, Obsidian-style daily note workflow for Joplin. Ope
 | Open today's daily note  | `Ctrl+Alt+D` (`Cmd+Alt+D` on macOS) |
 | Open daily note calendar | `Ctrl+Alt+O` (`Cmd+Alt+O` on macOS) |
 
-On desktop, both commands are available from **Tools → Daily Notes**, the command palette, and the keyboard shortcut editor. On mobile, they are available from the note toolbar overflow menu.
+On desktop, both commands are available from **Tools → Daily Notes**, the command palette, and the shortcut editor. On mobile, use the note toolbar overflow menu.
 
 ## Settings
 
 | Setting                       | Default       | Description                                                   |
 | ----------------------------- | ------------- | ------------------------------------------------------------- |
-| Daily notes notebook          | `Daily Notes` | Top-level notebook that contains daily notes.                 |
+| Daily notes notebook          | `Daily Notes` | Single top-level notebook; created if missing.                |
 | Date format                   | `YYYY-MM-DD`  | Note name and optional sub-notebook hierarchy.                |
 | Template note ID              | Empty         | ID of a note whose Markdown body initializes new daily notes. |
 | First day of week             | Sunday        | Sunday-first or Monday-first calendar layout.                 |
 | Roll unfinished todos forward | Off           | Carry open tasks from the previous daily note into today's.   |
 | Rollover lookback (days)      | 30            | How far back to search for the previous daily note.           |
 
-The daily notes notebook must be a single top-level notebook name. If it does not exist, the plugin creates it.
-
 ### Date format and sub-notebooks
 
-The `/` character creates a notebook hierarchy beneath the daily notes notebook. For example:
+Use `/` in the date format to create sub-notebooks. For example:
 
 ```text
 Date format: YYYY/MMMM/YYYY-MMM-DD
@@ -45,54 +41,44 @@ Date:        2023-01-01
 Result:      Daily Notes/2023/January/2023-Jan-01
 ```
 
-Supported Moment-style date tokens are:
+Supported Moment-style date tokens:
 
 ```text
 YYYY YY M MM MMM MMMM D DD d dd ddd dddd Do Q W WW
 ```
 
-Wrap literal letters in square brackets, for example `[Week]-WW`.
+Wrap literals in square brackets, for example `[Week]-WW`.
 
-The plugin treats a daily note as canonical only when its current notebook path and title exactly match the active settings. Renaming or moving a daily note means it will no longer appear as existing in the calendar, and opening that date can create a new canonical note.
+A calendar dot marks a note only when its title and notebook path match the current settings. Renaming or moving a note removes its marker, and opening that date can create a new matching note. Marker checks are read-only; if they fail, dates remain selectable and the calendar shows a warning.
 
 ## Templates
 
-Set **Template note ID** to the 32-character Joplin ID of a note. Its Markdown body is copied only when a daily note is first created. To find a note ID, open the note properties dialog or copy the note's Markdown link.
+Set **Template note ID** to a note's 32-character Joplin ID, available from note properties or its Markdown link. The note body is copied only when a daily note is first created.
 
-Templates use the same Moment-style tokens as the date format setting above, under two namespaces:
+Available variables:
 
-| Variable       | Example           | Expands to                                      |
-| -------------- | ----------------- | ----------------------------------------------- |
-| `{{date:...}}` | `{{date:dddd}}`   | `Sunday` -- the day the note is for             |
-| `{{time:...}}` | `{{time:h:mm A}}` | `9:05 AM` -- when the note was created          |
-| `{{date}}`     | `{{date}}`        | `2024-01-07`, short for `{{date:YYYY-MM-DD}}`   |
-| `{{time}}`     | `{{time}}`        | `09:05`, short for `{{time:HH:mm}}`             |
-| `{{title}}`    | `{{title}}`       | `2024-01-07`, the generated note title          |
-| `{{todos}}`    | `{{todos}}`       | Unfinished todos carried from the previous note |
+| Syntax            | Meaning                                                    |
+| ----------------- | ---------------------------------------------------------- |
+| `{{date:format}}` | Selected note date, for example `{{date:dddd}}` → `Sunday` |
+| `{{time:format}}` | Creation time, for example `{{time:h:mm A}}` → `9:05 AM`   |
+| `{{date}}`        | Short for `{{date:YYYY-MM-DD}}`                            |
+| `{{time}}`        | Short for `{{time:HH:mm}}`                                 |
+| `{{title}}`       | Generated note title                                       |
+| `{{todos}}`       | Unfinished todos carried from the previous note            |
 
-`{{date:...}}` accepts the date tokens listed above. `{{time:...}}` accepts time-of-day tokens:
+Date variables accept the date tokens listed above. Time variables accept:
 
 ```text
 H HH h hh m mm s ss A a
 ```
 
-`{{date:...}}` uses the date you chose for the daily note, while `{{time:...}}` uses the time the note is created. For example, if you create yesterday's note today, the date variables show yesterday and the time variables show the current time. Date tokens only work with `date:`, and time tokens only work with `time:`.
-
-Bracketed literals work in both, for example `{{date:[Week] WW}}`.
-
-Unknown or incorrectly formatted variables are left unchanged. If the configured template cannot be read, the plugin creates an empty daily note and shows a warning.
+Date variables use the selected note date; time variables use the creation time. Bracketed literals work in both, for example `{{date:[Week] WW}}`. Unknown or malformed variables remain unchanged. If the template cannot be read, the plugin creates an empty note and shows a warning.
 
 ## Todo rollover
 
-Enable **Roll unfinished todos forward** to carry open `- [ ]` task list items into a newly created daily note.
+Enable **Roll unfinished todos forward** to carry open `- [ ]` tasks from the most recent daily note within the configured lookback. Rollover runs only when creating today's note, not when opening an existing or past note.
 
-The source is the **previous daily note, not yesterday**. The plugin searches backwards from today until it finds a
-note, so a gap over a weekend or a holiday makes no difference. **Rollover lookback (days)** bounds that search.
-
-Once the todos are carried forward, the plugin rewrites them in the source note from `- [ ]` to `- [>]` -- the
-bullet-journal marker for "migrated forward". Nothing is deleted, and the item is no longer a checkbox, so the
-previous note stops reporting the task as open to anything that scans note bodies for unfinished tasks (e.g. the task progress indicator in Joplin's note list). `- [>]` is
-deliberately not `- [x]`: the task was moved, not completed.
+Carried tasks are changed to `- [>]` in the source note, marking them as migrated rather than completed. Nothing is deleted.
 
 Place the block with the `{{todos}}` template variable:
 
@@ -106,29 +92,9 @@ Place the block with the `{{todos}}` template variable:
 - [ ]
 ```
 
-If your template has no `{{todos}}` variable, the todos are appended to the end of the note. With no template
-configured, the new note contains just the todos. On a day with nothing to carry, a `{{todos}}` on a line of its
-own is removed with that line, so the template leaves no empty section behind.
+Without `{{todos}}`, carried tasks are appended to the note; without a template, they become the entire note. A standalone `{{todos}}` line is removed when there is nothing to carry.
 
-Details worth knowing:
-
-- **Only when creating today's note.** Opening a past date from the calendar never rewrites an earlier note, and
-  never rolls anything forward.
-- A todo nested under an unfinished parent travels with that parent, and is not carried twice.
-- An unfinished todo under a completed parent still rolls over on its own.
-- Checkboxes inside code blocks are ignored.
-- Empty checkbox placeholders are left behind; only items with content are carried.
-- If the previous note changes while rollover is running, its todos are copied but the previous note is left untouched,
-  and the plugin displays a warning rather than overwriting the edit.
-- Re-opening a note rolls nothing over a second time: the note already exists, and `- [>]` is not an open task.
-- **Create today's note on one device.** If another device already created it but has not synced yet, this device
-  creates its own copy and rolls into that one. After sync the carried todos may sit in the duplicate rather than
-  the note you open, while the source reads as migrated. Nothing is deleted -- the source still holds the full
-  text of every item -- but you may have to merge the two notes by hand.
-
-## Calendar markers
-
-A dot marks each visible date whose exact generated note title exists in its generated notebook. Marker checks are read-only: browsing the calendar never creates notebooks or notes. If marker loading fails, dates remain selectable and the calendar displays a warning.
+Create today's note on only one device at a time. If two unsynced devices create it, rollover may target a duplicate that must be merged manually. See [todo rollover behavior](docs/TODO_ROLLOVER.md) for selection rules and edge cases.
 
 ## Development
 
