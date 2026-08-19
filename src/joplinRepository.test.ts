@@ -5,6 +5,7 @@ function createDataApi(): JoplinDataApi {
     return {
         get: vi.fn(),
         post: vi.fn(),
+        put: vi.fn(),
     };
 }
 
@@ -204,6 +205,110 @@ describe('JoplinRepository', () => {
         const repository = new JoplinRepository(data);
 
         await expect(repository.createNote('folder', 'Today', 'Body')).resolves.toMatchObject({ id: 'note' });
-        await expect(repository.getTemplateBody('template')).resolves.toBe('# Template');
+        await expect(repository.getNoteBody('template')).resolves.toBe('# Template');
+    });
+    test('finds the most recent earlier note across a gap in the dates', async () => {
+        const data = createDataApi();
+        vi.mocked(data.get)
+            .mockResolvedValueOnce({
+                items: [{ id: 'root', title: 'Daily Notes', parent_id: '' }],
+                has_more: false,
+            })
+            .mockResolvedValueOnce({
+                items: [
+                    { id: 'older', parent_id: 'root', title: '2024-01-05' },
+                    { id: 'newer', parent_id: 'root', title: '2024-01-08' },
+                ],
+                has_more: false,
+            });
+        const repository = new JoplinRepository(data);
+
+        // Nothing exists for the 9th, so the first candidate that resolves wins.
+        const targets: DailyNoteTarget[] = [
+            { isoDate: '2024-01-09', folderSegments: [], title: '2024-01-09' },
+            { isoDate: '2024-01-08', folderSegments: [], title: '2024-01-08' },
+            { isoDate: '2024-01-05', folderSegments: [], title: '2024-01-05' },
+        ];
+
+        await expect(repository.findLatestNoteBefore('Daily Notes', targets)).resolves.toMatchObject({ id: 'newer' });
+        // One folder listing plus one note listing: the shared notebook is read once.
+        expect(data.get).toHaveBeenCalledTimes(2);
+        expect(data.post).not.toHaveBeenCalled();
+    });
+
+    test('selects the earliest-created duplicate as the previous note', async () => {
+        const data = createDataApi();
+        vi.mocked(data.get)
+            .mockResolvedValueOnce({
+                items: [{ id: 'root', title: 'Daily Notes', parent_id: '' }],
+                has_more: false,
+            })
+            .mockResolvedValueOnce({
+                items: [
+                    { id: 'later', parent_id: 'root', title: '2024-01-08', user_created_time: 20 },
+                    { id: 'earlier', parent_id: 'root', title: '2024-01-08', user_created_time: 10 },
+                ],
+                has_more: false,
+            });
+        const repository = new JoplinRepository(data);
+        const targets: DailyNoteTarget[] = [{ isoDate: '2024-01-08', folderSegments: [], title: '2024-01-08' }];
+
+        await expect(repository.findLatestNoteBefore('Daily Notes', targets)).resolves.toMatchObject({
+            id: 'earlier',
+        });
+    });
+
+    test('returns null and creates nothing when no candidate exists', async () => {
+        const data = createDataApi();
+        vi.mocked(data.get).mockResolvedValue({ items: [], has_more: false });
+        const repository = new JoplinRepository(data);
+
+        const targets: DailyNoteTarget[] = [{ isoDate: '2024-01-09', folderSegments: ['2024'], title: '2024-01-09' }];
+
+        await expect(repository.findLatestNoteBefore('Daily Notes', targets)).resolves.toBeNull();
+        expect(data.post).not.toHaveBeenCalled();
+    });
+
+    test('reads live rather than reusing a cached highlight listing', async () => {
+        const data = createDataApi();
+        const folders = { items: [{ id: 'root', title: 'Daily Notes', parent_id: '' }], has_more: false };
+        vi.mocked(data.get)
+            .mockResolvedValueOnce(folders)
+            .mockResolvedValueOnce({ items: [], has_more: false })
+            .mockResolvedValueOnce(folders)
+            .mockResolvedValueOnce({
+                items: [{ id: 'arrived', parent_id: 'root', title: '2024-01-08' }],
+                has_more: false,
+            });
+        const repository = new JoplinRepository(data);
+        const targets: DailyNoteTarget[] = [{ isoDate: '2024-01-08', folderSegments: [], title: '2024-01-08' }];
+
+        // Warm the highlight cache with a listing that does not contain the note.
+        await repository.findExistingDates('Daily Notes', targets);
+
+        // A stale hit would carry todos out of the wrong note, so this must re-read.
+        await expect(repository.findLatestNoteBefore('Daily Notes', targets)).resolves.toMatchObject({
+            id: 'arrived',
+        });
+    });
+
+    test('updates a note body and drops the cached listings', async () => {
+        const data = createDataApi();
+        vi.mocked(data.get).mockResolvedValue({ items: [], has_more: false });
+        const repository = new JoplinRepository(data);
+
+        await repository.findExistingDates('Daily Notes', [
+            { isoDate: '2024-01-08', folderSegments: [], title: '2024-01-08' },
+        ]);
+        const readsBeforeWrite = vi.mocked(data.get).mock.calls.length;
+
+        await repository.updateNoteBody('note', '- [>] migrated');
+
+        expect(data.put).toHaveBeenCalledWith(['notes', 'note'], null, { body: '- [>] migrated' });
+
+        await repository.findExistingDates('Daily Notes', [
+            { isoDate: '2024-01-08', folderSegments: [], title: '2024-01-08' },
+        ]);
+        expect(vi.mocked(data.get).mock.calls.length).toBeGreaterThan(readsBeforeWrite);
     });
 });

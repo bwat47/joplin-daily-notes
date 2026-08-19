@@ -6,7 +6,7 @@ Daily Notes separates pure date/template logic from Joplin API access and UI reg
 
 The main responsibilities are:
 
-- **Settings and commands** register the four public settings and two stable command IDs. Desktop receives a Tools submenu and the today shortcut; mobile receives two note-toolbar overflow actions.
+- **Settings and commands** register the six public settings and two stable command IDs. Desktop receives a Tools submenu and the today shortcut; mobile receives two note-toolbar overflow actions.
 - **Date and template logic** validates the documented Day.js token subsets, produces canonical paths using local dates, parses calendar dates without UTC conversion, and expands template variables. Date and time tokens form separate dialects: note paths and `{{date:...}}` accept only date tokens, `{{time:...}}` only time-of-day tokens.
 - **Joplin repository** paginates flat folder responses and traverses them by exact title and `parent_id`, paginates notes within the final notebook, creates notes/notebooks, and reads templates. Calendar highlight lookups are served from a short-lived cache; the open-or-create path always reads live.
 - **Daily notes service** owns the open-or-create workflow and serializes mutating operations to prevent rapid local commands from creating duplicate notes.
@@ -18,8 +18,9 @@ The main responsibilities are:
 2. Convert the target local date into a canonical ISO date, relative folder segments, and note title.
 3. Resolve or create the top-level daily notes notebook and generated sub-notebooks.
 4. List notes in the final notebook with pagination and find an exact title match.
-5. If no note exists, read and expand the optional template, then create the note.
-6. Open the note and focus the editor on desktop.
+5. If no note exists, collect any todos to roll over, read and expand the optional template, compose the two, then create the note.
+6. If todos were rolled over, mark them migrated in the source note. This follows creation, never precedes it.
+7. Open the note and focus the editor on desktop.
 
 All calls to this flow share a promise queue. A second invocation begins its lookup only after the first finishes, so it sees a note created by the first invocation. This protects one Joplin process; synchronization conflicts created concurrently on separate devices remain subject to Joplin's normal sync behavior.
 
@@ -54,16 +55,29 @@ When a month is rendered, the webview sends the 42 visible ISO dates to the plug
 
 Both listings are cached for 30 seconds, keyed by notebook. Without it, every month change re-reads the same notebooks, which for a flat date format means re-listing the entire daily notes notebook -- about one request per hundred notes -- on each navigation. Entries hold the in-flight request, so rapid month changes share one listing rather than issuing duplicates.
 
-The cache serves highlight lookups only. `findCanonicalNote` always reads live, because a stale miss there would report that a date has no note when one already exists -- a note that just arrived by sync, say -- and the open-or-create flow would create a duplicate. Writes drop every entry, so a newly created note is highlighted immediately.
+The cache serves highlight lookups only. `findCanonicalNote` and `findLatestNoteBefore` always read live, because a stale miss there would report that a date has no note when one already exists -- a note that just arrived by sync, say -- and the open-or-create flow would create a duplicate. Writes drop every entry, so a newly created note is highlighted immediately.
 
 Month navigation moves the visible grid only: the selection is what the dialog's Open button acts on, so browsing never reassigns it. Because the selection can therefore sit outside the visible month, each render designates one tabbable cell — the selection when it is on the grid, otherwise the first day of the visible month — which keeps the calendar in the tab order and gives arrow-key navigation its origin.
 
 The webview ignores stale asynchronous responses after month navigation. Highlight failures are isolated from date selection, so users can still open a date.
 
-## Future todo functionality
+## Todo rollover
 
-Todo display or rollover should extend the new-note initialization step rather than command or persistence code. A future body-builder can combine the rendered template with content derived from earlier canonical daily notes before the single note-creation call. If a future feature needs identity independent of the canonical path and title, its metadata and conflict rules should be introduced together.
+Rollover extends the new-note initialization step: the body-builder combines the rendered template with unfinished todos read from an earlier canonical daily note, and the result reaches the single note-creation call. It introduces no identity of its own -- the source note is found through the same canonical path and title as everything else.
+
+`src/rollover.ts` is pure and parses with `@lezer/markdown`, configured with the `TaskList` extension. The split across the two directions is deliberate:
+
+- **Reading needs real Markdown structure.** An item's true end decides whether it is carried whole, and that end covers continuation lines, lazy continuations and nested children. A line-oriented scanner approximates this with indentation rules that accumulate special cases; `ListItem` node ranges are specified. Several cases then fall out of the grammar rather than being coded: a checkbox inside a fenced or four-space-indented code block never becomes a `Task` node, and an already-migrated `- [>]` parses as an ordinary paragraph, which is what makes a second pass over the same note a no-op.
+- **Writing needs none of it.** Migration replaces the three characters of a `TaskMarker` in place, so no parser mistake can remove content from the note being rewritten. After creating the new note, the service re-reads the source and only writes when its complete body still matches the version used for extraction. If it changed, migration is skipped and the user is warned, leaving the todos open in both notes rather than overwriting concurrent edits.
+
+The source is resolved by generating candidate targets for the preceding days, newest first, and asking the repository for the first that exists. This answers "the previous daily note" rather than "yesterday" without reverse-parsing titles back into dates, which an arbitrary Day.js format does not support. The lookback setting bounds the search. `findLatestNoteBefore` reads live for the same reason `findCanonicalNote` does: a stale hit would carry todos out of the wrong note, and a stale miss would strand todos that are still open.
+
+Ordering is the one hard constraint. The source note is marked only after `createNote` resolves. The reverse order would leave the todos in neither note if creation then failed; in the chosen order a failed marking leaves them open in both, which is visible and recoverable. Every step degrades to "create the note without todos" and a warning, matching how an unreadable template behaves.
+
+Rollover runs only when the note being created is for today, because it rewrites another note. Backfilling a past date would stamp `[>]` into a note from months ago, and creating tomorrow's note would mark today's still-open work as migrated before the day is out.
+
+Placement is one default with one override: `{{todos}}` decides where the block lands, and without it the block is appended. This keeps the template as the single placement mechanism -- a heading setting would compete with the variable for the same job and add heading-matching semantics that the variable does not need. Rolled todos are never dropped, since they are already marked migrated in the source.
 
 ## Testing boundaries
 
-Pure tests cover formatting, local-date parsing, template expansion, calendar grid math, and cache expiry, sharing, and invalidation. Joplin API tests use injected interfaces: a data interface to verify folder traversal, pagination, exact matching, and non-mutating highlight queries, and a dialog interface to verify view reuse, the open guard, and webview message validation. Service tests verify creation policy, platform behavior, error fallback, and serialized concurrent opens.
+Pure tests cover formatting, local-date parsing, template expansion, todo extraction and migration, calendar grid math, and cache expiry, sharing, and invalidation. Joplin API tests use injected interfaces: a data interface to verify folder traversal, pagination, exact matching, non-mutating highlight queries, and the live backwards search for a previous note, and a dialog interface to verify view reuse, the open guard, and webview message validation. Service tests verify creation policy, platform behavior, error fallback, serialized concurrent opens, and rollover -- placement, the today-only guard, and that the source note is marked only after creation succeeds.

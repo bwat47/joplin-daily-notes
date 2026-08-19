@@ -19,6 +19,8 @@ const readSettings: SettingsReader = async () => ({
     dateFormat: 'YYYY-MM-DD',
     templateNoteId: '',
     weekStart: 'sunday',
+    rolloverTodos: false,
+    rolloverLookbackDays: 30,
 });
 
 function createDialog(service: DailyNotesService = createService()): CalendarDialog {

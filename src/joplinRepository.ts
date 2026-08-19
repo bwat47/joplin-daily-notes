@@ -19,6 +19,7 @@ const MAX_PAGES = 5000;
 export interface JoplinDataApi {
     get(path: string[], query?: unknown): Promise<unknown>;
     post(path: string[], query?: unknown, body?: unknown): Promise<unknown>;
+    put(path: string[], query?: unknown, body?: unknown): Promise<unknown>;
 }
 
 interface FolderNode {
@@ -62,6 +63,23 @@ function asNote(value: unknown): NoteRecord {
 
 function pathKey(segments: string[]): string {
     return JSON.stringify(segments);
+}
+
+function selectCanonicalNote(notes: NoteRecord[], folderId: string, title: string): NoteRecord | null {
+    const matches = notes.filter((note) => note.title === title);
+    if (matches.length === 0) return null;
+
+    matches.sort((left, right) => {
+        const timeDifference =
+            (left.user_created_time ?? Number.MAX_SAFE_INTEGER) - (right.user_created_time ?? Number.MAX_SAFE_INTEGER);
+        return timeDifference || left.id.localeCompare(right.id);
+    });
+    if (matches.length > 1) {
+        logger.warn(
+            `Found ${matches.length} notes titled "${title}" in notebook ${folderId}; using the earliest-created note.`
+        );
+    }
+    return matches[0];
 }
 
 export class JoplinRepository {
@@ -112,21 +130,7 @@ export class JoplinRepository {
      * duplicate.
      */
     public async findCanonicalNote(folderId: string, title: string): Promise<NoteRecord | null> {
-        const notes = (await this.listFolderNotes(folderId)).filter((note) => note.title === title);
-        if (notes.length === 0) return null;
-
-        notes.sort((left, right) => {
-            const timeDifference =
-                (left.user_created_time ?? Number.MAX_SAFE_INTEGER) -
-                (right.user_created_time ?? Number.MAX_SAFE_INTEGER);
-            return timeDifference || left.id.localeCompare(right.id);
-        });
-        if (notes.length > 1) {
-            logger.warn(
-                `Found ${notes.length} notes titled "${title}" in notebook ${folderId}; opening the earliest-created note.`
-            );
-        }
-        return notes[0];
+        return selectCanonicalNote(await this.listFolderNotes(folderId), folderId, title);
     }
 
     public async createNote(folderId: string, title: string, body: string): Promise<NoteRecord> {
@@ -143,12 +147,54 @@ export class JoplinRepository {
         return note;
     }
 
-    public async getTemplateBody(noteId: string): Promise<string> {
+    public async getNoteBody(noteId: string): Promise<string> {
         const value = await this.data.get(['notes', noteId], { fields: ['body'] });
         if (!value || typeof value !== 'object' || typeof (value as { body?: unknown }).body !== 'string') {
-            throw new Error('Template note has no readable Markdown body.');
+            throw new Error(`Note ${noteId} has no readable Markdown body.`);
         }
         return (value as { body: string }).body;
+    }
+
+    public async updateNoteBody(noteId: string, body: string): Promise<void> {
+        await this.data.put(['notes', noteId], null, { body });
+        // Same reason as createNote: the listing that produced this note is now stale.
+        this.invalidateCaches();
+    }
+
+    /**
+     * Finds the note for the first of `targets` that exists, in the order given.
+     *
+     * Callers pass candidate dates newest-first, so this answers "the previous
+     * daily note" without assuming one exists on any particular calendar day.
+     *
+     * Like `findCanonicalNote` this reads live rather than through the highlight
+     * cache. A stale hit here would carry todos forward out of the wrong note, and
+     * a stale miss would skip a note whose todos are still open. Listings are
+     * memoised per call, so a lookback that stays inside one notebook -- the usual
+     * case -- reads that notebook once.
+     */
+    public async findLatestNoteBefore(folderName: string, targets: DailyNoteTarget[]): Promise<NoteRecord | null> {
+        if (targets.length === 0) return null;
+
+        const folders = await this.fetchFolders();
+        const listings = new Map<string, NoteRecord[]>();
+
+        for (const target of targets) {
+            // Never creates: an absent notebook simply has no candidate note.
+            const folder = this.findFolderPath(folders, [folderName, ...target.folderSegments]);
+            if (!folder) continue;
+
+            let notes = listings.get(folder.id);
+            if (!notes) {
+                notes = await this.listFolderNotes(folder.id);
+                listings.set(folder.id, notes);
+            }
+
+            const match = selectCanonicalNote(notes, folder.id, target.title);
+            if (match) return match;
+        }
+
+        return null;
     }
 
     public async findExistingDates(folderName: string, targets: DailyNoteTarget[]): Promise<string[]> {
