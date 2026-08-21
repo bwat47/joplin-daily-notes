@@ -15,12 +15,6 @@ declare const webviewApi: {
     postMessage(message: unknown): Promise<unknown>;
 };
 
-declare global {
-    interface Window {
-        dailyNotesCalendarObserver?: MutationObserver;
-    }
-}
-
 const ENGLISH_MONTHS = [
     'January',
     'February',
@@ -268,14 +262,11 @@ function initializeCalendar(): void {
     renderGrid(true);
 }
 
+// Joplin injects dialog scripts only after the dialog HTML is in place, on both
+// desktop and mobile, so the markup is already there when this runs. DOMContentLoaded
+// has also already fired by then, which is why there is nothing to wait for here.
 if (typeof document !== 'undefined') {
-    document.addEventListener('DOMContentLoaded', initializeCalendar);
     initializeCalendar();
-
-    if (!window.dailyNotesCalendarObserver) {
-        window.dailyNotesCalendarObserver = new MutationObserver(initializeCalendar);
-        window.dailyNotesCalendarObserver.observe(document.documentElement, { childList: true, subtree: true });
-    }
 }
 
 export default initializeCalendar;
