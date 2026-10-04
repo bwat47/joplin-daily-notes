@@ -40,7 +40,6 @@ export default defineConfig([
         rules: {
             // report an error if any circular dependency is found
             'import/no-cycle': ['error', { maxDepth: Infinity }],
-            'no-useless-escape': 'off',
         },
     },
 
