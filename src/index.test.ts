@@ -22,7 +22,9 @@ describe('plugin registration', () => {
 
         await import('./index');
 
-        expect(logError).toHaveBeenCalledWith('Plugin registration failed.', error);
+        await vi.waitFor(() => {
+            expect(logError).toHaveBeenCalledWith('Plugin registration failed.', error);
+        });
     });
 
     test('does not log an error when registration succeeds', async () => {
