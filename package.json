@@ -26,7 +26,7 @@
         "@types/node": "^26.2.0",
         "@typescript-eslint/eslint-plugin": "^8.67.0",
         "@typescript-eslint/parser": "^8.67.0",
-        "@vitest/coverage-v8": "^4.0.9",
+        "@vitest/coverage-v8": "^5.0.3",
         "@vitest/eslint-plugin": "^1.6.27",
         "chalk": "^4.1.0",
         "copy-webpack-plugin": "^14.0.0",
@@ -43,7 +43,7 @@
         "tar": "^7.5.22",
         "ts-loader": "^9.3.1",
         "typescript": "^6.0.3",
-        "vitest": "^4.1.10",
+        "vitest": "^5.0.3",
         "webpack": "^5.109.2",
         "webpack-cli": "^7.2.2"
     },
