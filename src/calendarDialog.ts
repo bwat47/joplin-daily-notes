@@ -80,7 +80,11 @@ export class CalendarDialog {
             const result = await this.showDialog();
             if (result?.id !== 'confirm') return;
 
-            const selectedDate = result.formData?.calendar?.date;
+            const formData: unknown = result.formData;
+            const calendar =
+                formData && typeof formData === 'object' && 'calendar' in formData ? formData.calendar : undefined;
+            const selectedDate =
+                calendar && typeof calendar === 'object' && 'date' in calendar ? calendar.date : undefined;
             if (typeof selectedDate !== 'string') throw new Error('The calendar did not return a selected date.');
             await this.dailyNotes.openIsoDate(selectedDate);
         } finally {
