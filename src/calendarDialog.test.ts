@@ -155,7 +155,7 @@ describe('CalendarDialog', () => {
     test('rejects unknown webview messages', async () => {
         const service = createService();
         await createDialog(service).initialize();
-        const handler = dialogs.onMessage.mock.calls[0][1] as (message: unknown) => Promise<unknown>;
+        const handler = dialogs.onMessage.mock.calls[0][1];
 
         await expect(handler({ type: 'nope' })).rejects.toThrow('Unknown calendar message.');
         await expect(handler({ type: 'queryExistingDates', dates: ['2024-03-09'] })).resolves.toEqual({

@@ -3,7 +3,7 @@ import { ToastType } from 'api/types';
 import { CalendarDialog, type JoplinDialogApi } from './calendarDialog';
 import { registerCommands } from './commands';
 import { DailyNotesService } from './dailyNotesService';
-import { JoplinRepository, type JoplinDataApi } from './joplinRepository';
+import { JoplinRepository } from './joplinRepository';
 import { logger } from './logger';
 import { readSettings, registerSettings } from './settings';
 
@@ -13,7 +13,7 @@ joplin.plugins.register({
 
         const versionInfo = await joplin.versionInfo();
         const isMobile = versionInfo.platform === 'mobile';
-        const repository = new JoplinRepository(joplin.data as unknown as JoplinDataApi);
+        const repository = new JoplinRepository(joplin.data);
         const dailyNotes = new DailyNotesService(repository, {
             readSettings,
             isMobile,
