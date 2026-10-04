@@ -98,14 +98,18 @@ function clampLookback(value: unknown): number {
     return Math.min(days, LOOKBACK_DAYS.maximum);
 }
 
+function stringOrDefault(value: unknown, fallback: string): string {
+    return typeof value === 'string' ? value : fallback;
+}
+
 export async function readSettings(): Promise<DailyNoteSettings> {
     const values = await joplin.settings.values(Object.values(SETTING_KEYS));
     const weekStart: WeekStart = values[SETTING_KEYS.weekStart] === 'monday' ? 'monday' : 'sunday';
 
     return {
-        folderName: String(values[SETTING_KEYS.folderName] ?? 'Daily Notes'),
-        dateFormat: String(values[SETTING_KEYS.dateFormat] ?? 'YYYY-MM-DD'),
-        templateNoteId: String(values[SETTING_KEYS.templateNoteId] ?? ''),
+        folderName: stringOrDefault(values[SETTING_KEYS.folderName], 'Daily Notes'),
+        dateFormat: stringOrDefault(values[SETTING_KEYS.dateFormat], 'YYYY-MM-DD'),
+        templateNoteId: stringOrDefault(values[SETTING_KEYS.templateNoteId], ''),
         weekStart,
         rolloverTodos: values[SETTING_KEYS.rolloverTodos] === true,
         keepEmptyTodoLine: values[SETTING_KEYS.keepEmptyTodoLine] === true,

@@ -190,7 +190,7 @@ describe('JoplinRepository', () => {
             const repository = new JoplinRepository(data);
 
             await repository.findExistingDates('Daily Notes', targets);
-            const before = vi.mocked(data.get).mock.calls.length;
+            const before = vi.mocked(data).get.mock.calls.length;
             await repository.findCanonicalNote('year', '01-01');
             await repository.ensureFolderPath(['Daily Notes', '2024']);
 
@@ -300,7 +300,7 @@ describe('JoplinRepository', () => {
         await repository.findExistingDates('Daily Notes', [
             { isoDate: '2024-01-08', folderSegments: [], title: '2024-01-08' },
         ]);
-        const readsBeforeWrite = vi.mocked(data.get).mock.calls.length;
+        const readsBeforeWrite = vi.mocked(data).get.mock.calls.length;
 
         await repository.updateNoteBody('note', '- [>] migrated');
 

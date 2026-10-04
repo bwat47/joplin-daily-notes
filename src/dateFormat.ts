@@ -48,8 +48,8 @@ export class DateFormatError extends Error {
 }
 
 function validateRepeatedToken(format: string, index: number, dialect: FormatDialect): void {
+    if (!Object.prototype.hasOwnProperty.call(dialect.limits, format[index])) return;
     const repeatedTokenLimit = dialect.limits[format[index]];
-    if (repeatedTokenLimit === undefined) return;
 
     let runEnd = index + 1;
     while (format[runEnd] === format[index]) runEnd += 1;
@@ -76,7 +76,7 @@ function validateFormat(format: string, dialect: FormatDialect): void {
             validateRepeatedToken(format, index, dialect);
             const token = dialect.tokens.find((candidate) => format.startsWith(candidate, index));
             if (!token) {
-                const unsupported = format.slice(index).match(/^[A-Za-z]+/)?.[0] ?? format[index];
+                const unsupported = /^[A-Za-z]+/.exec(format.slice(index))?.[0] ?? format[index];
                 throw new DateFormatError(
                     `Unsupported ${dialect.kind} format token near "${unsupported}". Wrap literal text in square brackets.`
                 );

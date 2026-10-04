@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -5,11 +6,11 @@ export default defineConfig({
         alias: [
             {
                 find: /^api\/(.*)$/,
-                replacement: new URL('./api/$1', import.meta.url).pathname,
+                replacement: fileURLToPath(new URL('./api/$1', import.meta.url)),
             },
             {
                 find: 'api',
-                replacement: new URL('./api/index.ts', import.meta.url).pathname,
+                replacement: fileURLToPath(new URL('./api/index.ts', import.meta.url)),
             },
         ],
     },

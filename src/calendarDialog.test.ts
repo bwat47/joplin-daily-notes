@@ -88,6 +88,17 @@ describe('CalendarDialog', () => {
         expect(service.openIsoDate).toHaveBeenCalledWith('2024-03-09');
     });
 
+    test.each([undefined, null, {}, { calendar: null }, { calendar: 'invalid' }, { calendar: { date: 42 } }])(
+        'rejects a confirmed dialog with invalid form data %j',
+        async (formData) => {
+            const service = createService();
+            dialogs.open.mockResolvedValue({ id: 'confirm', formData });
+
+            await expect(createDialog(service).open()).rejects.toThrow('The calendar did not return a selected date.');
+            expect(service.openIsoDate).not.toHaveBeenCalled();
+        }
+    );
+
     test('a repeat open while the dialog is on screen is ignored', async () => {
         const service = createService();
         const pending: { close?: (result: DialogResult | null) => void } = {};
@@ -155,7 +166,7 @@ describe('CalendarDialog', () => {
     test('rejects unknown webview messages', async () => {
         const service = createService();
         await createDialog(service).initialize();
-        const handler = dialogs.onMessage.mock.calls[0][1] as (message: unknown) => Promise<unknown>;
+        const handler = dialogs.onMessage.mock.calls[0][1];
 
         await expect(handler({ type: 'nope' })).rejects.toThrow('Unknown calendar message.');
         await expect(handler({ type: 'queryExistingDates', dates: ['2024-03-09'] })).resolves.toEqual({
