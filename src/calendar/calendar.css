@@ -4,9 +4,9 @@
 
 .daily-notes-calendar {
     box-sizing: border-box;
-    /* Bound by 100%, not vw: the dialog's webview viewport is wider than the
-       usable dialog box, so a vw cap never clamped and the grid overflowed. */
-    width: min(22rem, 100%);
+    /* Bound by 100%, not vw: the mobile dialog's webview viewport is wider than
+       the usable dialog box, so a vw cap never clamped and the grid overflowed. */
+    width: 100%;
     padding: 0.5rem;
     color: var(--joplin-color, inherit);
     font-family: var(--joplin-font-family, sans-serif);
@@ -132,6 +132,16 @@
 
 .calendar-status--error {
     color: var(--joplin-color-error, #b42318);
+}
+
+/* The desktop dialog sizes itself from the body and ignores content that
+   overflows it, so widening the calendar alone clipped it. A body min-width
+   makes the dialog itself grow. Mobile dialogs have a fixed width instead,
+   which the calendar fills. */
+@media (hover: hover) and (pointer: fine) {
+    body {
+        min-width: 24rem;
+    }
 }
 
 @media (max-width: 360px) {
