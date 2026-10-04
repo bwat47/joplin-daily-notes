@@ -21,6 +21,7 @@ describe('settings', () => {
 
         expect(settingsApi.registerSettings).toHaveBeenCalledWith(
             expect.objectContaining({
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- Vitest's asymmetric matcher returns any.
                 keepEmptyTodoLine: expect.objectContaining({
                     value: false,
                     type: SettingItemType.Bool,

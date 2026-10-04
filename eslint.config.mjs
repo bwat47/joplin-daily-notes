@@ -3,6 +3,7 @@
 import js from '@eslint/js';
 import tsParser from '@typescript-eslint/parser';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
+import vitest from '@vitest/eslint-plugin';
 import importPlugin from 'eslint-plugin-import-x';
 import sonarjs from 'eslint-plugin-sonarjs';
 import prettier from 'eslint-config-prettier';
@@ -40,6 +41,33 @@ export default [
             'no-useless-escape': 'off',
             '@typescript-eslint/no-inferrable-types': 'error',
             '@typescript-eslint/explicit-module-boundary-types': 'error',
+        },
+    },
+
+    // Type-aware rules for TypeScript sources
+    {
+        files: ['**/*.{ts,tsx}'],
+        languageOptions: {
+            parserOptions: {
+                projectService: true,
+                tsconfigRootDir: import.meta.dirname,
+            },
+        },
+        rules: {
+            ...tsPlugin.configs['recommended-type-checked'].rules,
+        },
+    },
+
+    // Vitest rules and assertion-aware method checks for tests
+    {
+        files: ['**/*.{test,spec}.{ts,tsx}'],
+        ...vitest.configs.recommended,
+        rules: {
+            ...vitest.configs.recommended.rules,
+            // Test doubles use async to satisfy promise-returning interfaces.
+            '@typescript-eslint/require-await': 'off',
+            '@typescript-eslint/unbound-method': 'off',
+            'vitest/unbound-method': 'error',
         },
     },
 
