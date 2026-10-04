@@ -48,8 +48,8 @@ export class DateFormatError extends Error {
 }
 
 function validateRepeatedToken(format: string, index: number, dialect: FormatDialect): void {
+    if (!Object.prototype.hasOwnProperty.call(dialect.limits, format[index])) return;
     const repeatedTokenLimit = dialect.limits[format[index]];
-    if (repeatedTokenLimit === undefined) return;
 
     let runEnd = index + 1;
     while (format[runEnd] === format[index]) runEnd += 1;
