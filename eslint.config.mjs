@@ -27,7 +27,7 @@ export default defineConfig([
             },
         },
         plugins: {
-            import: importPlugin,
+            'import-x': importPlugin,
         },
         settings: {
             // Without these, import-x silently skips TS imports and rules like no-cycle never fire.
@@ -39,7 +39,10 @@ export default defineConfig([
         },
         rules: {
             // report an error if any circular dependency is found
-            'import/no-cycle': ['error', { maxDepth: Infinity }],
+            'import-x/no-cycle': ['error', { maxDepth: Infinity }],
+            'import-x/no-self-import': 'error',
+            // Merge duplicate imports using inline `type` specifiers, matching consistent-type-imports below
+            'import-x/no-duplicates': ['error', { 'prefer-inline': true }],
         },
     },
 
@@ -56,6 +59,9 @@ export default defineConfig([
         rules: {
             '@typescript-eslint/no-inferrable-types': 'error',
             '@typescript-eslint/explicit-module-boundary-types': 'error',
+            '@typescript-eslint/consistent-type-imports': ['error', { fixStyle: 'inline-type-imports' }],
+            // Use `import type { A }` rather than `import { type A }` when every specifier is a type
+            '@typescript-eslint/no-import-type-side-effects': 'error',
         },
     },
 
