@@ -45,17 +45,18 @@ export async function registerCommands(
         execute: async () => runCommand(async () => calendar.open()),
     });
 
+    await joplin.views.toolbarButtons.create(
+        'dailyNotes.openToday.toolbar',
+        COMMAND_IDS.openToday,
+        ToolbarButtonLocation.NoteToolbar
+    );
+    await joplin.views.toolbarButtons.create(
+        'dailyNotes.openCalendar.toolbar',
+        COMMAND_IDS.openCalendar,
+        ToolbarButtonLocation.NoteToolbar
+    );
+
     if (isMobile) {
-        await joplin.views.toolbarButtons.create(
-            'dailyNotes.openToday.mobile',
-            COMMAND_IDS.openToday,
-            ToolbarButtonLocation.NoteToolbar
-        );
-        await joplin.views.toolbarButtons.create(
-            'dailyNotes.openCalendar.mobile',
-            COMMAND_IDS.openCalendar,
-            ToolbarButtonLocation.NoteToolbar
-        );
         return;
     }
 

@@ -21,7 +21,7 @@ Daily Notes adds an Obsidian-style daily note workflow to Joplin. Open today's n
 | Open today's daily note  | `Ctrl+Alt+D` (`Cmd+Alt+D` on macOS) |
 | Open daily note calendar | `Ctrl+Alt+O` (`Cmd+Alt+O` on macOS) |
 
-On desktop, both commands are available from **Tools → Daily Notes**, the command palette, and the shortcut editor. On mobile, use the note toolbar overflow menu.
+On desktop, both commands are available from the note toolbar, **Tools → Daily Notes**, the command palette, and the shortcut editor. On mobile, use the note toolbar overflow menu.
 
 ## Settings
 
