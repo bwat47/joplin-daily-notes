@@ -12,6 +12,13 @@ export const calendarCss = css`
         color-scheme: light dark;
     }
 
+    /* Joplin mobile sizes the dialog to this wrapper's measured width, which otherwise
+       fills the whole window on wide screens (e.g. the web app). Matches the desktop
+       body min-width below. */
+    #joplin-plugin-content {
+        max-width: 24rem;
+    }
+
     .daily-notes-calendar {
         box-sizing: border-box;
         /* Bound by 100%, not vw: the mobile dialog's webview viewport is wider than
