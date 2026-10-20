@@ -41,7 +41,9 @@ All open-or-create operations share a promise queue. Concurrent commands in one 
 
 ## Calendar flow
 
-The calendar reuses one Joplin dialog and loads a dependency-free TypeScript/CSS webview. Each open begins at today and applies the configured week start.
+The calendar reuses one Joplin dialog and loads a dependency-free TypeScript webview. Each open begins at today and applies the configured week start.
+
+The stylesheet (`src/calendarStyles.ts`) is a `css`-tagged string embedded in a `<style>` element of the dialog markup, so it arrives with the HTML; loading it via `addScript` let the dialog render unstyled first, which caused a visible layout adjustment on mobile. Joplin mobile also lays a fit-to-content dialog out near full-screen (at low opacity) until it has measured the content, so the calendar stays transparent until `src/calendar/revealWhenSized.ts` sees the viewport shrink to fit and adds `.is-sized`; a delayed CSS animation reveals it anyway if that never happens.
 
 For each visible grid, the webview sends its ISO dates to the plugin. The service builds canonical targets and groups them by leaf notebook path. The repository resolves those paths without creating notebooks, lists each distinct leaf notebook once, and returns the dates with matching titles.
 

@@ -1,4 +1,5 @@
 import type { ButtonSpec, DialogResult, ViewHandle } from 'api/types';
+import { calendarCss } from './calendarStyles';
 import { toIsoDate } from './dateFormat';
 import type { DailyNotesService } from './dailyNotesService';
 import { isQueryExistingDatesMessage, type SettingsReader } from './types';
@@ -53,7 +54,6 @@ export class CalendarDialog {
 
     private async createHandle(): Promise<ViewHandle> {
         const handle = await this.dialogs.create('daily-notes-calendar-dialog');
-        await this.dialogs.addScript(handle, './calendar/calendar.css');
         await this.dialogs.addScript(handle, './calendar/calendar.js');
         await this.dialogs.setButtons(handle, [
             { id: 'confirm', title: 'Open' },
@@ -99,7 +99,8 @@ export class CalendarDialog {
         const today = toIsoDate(new Date());
         await this.dialogs.setHtml(
             handle,
-            `<form name="calendar">
+            `<style>${calendarCss}</style>
+            <form name="calendar">
                 <div class="daily-notes-calendar" data-daily-notes-calendar data-selected-date="${today}" data-week-start="${settings.weekStart}">
                     <header class="calendar-header">
                         <button type="button" class="calendar-navigation" data-calendar-previous aria-label="Previous month">&#x2039;</button>

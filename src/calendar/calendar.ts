@@ -5,6 +5,7 @@
  * So runtime imports are only safe when the imported module is browser-compatible.
  */
 import type { QueryExistingDatesResponse, WeekStart } from '../types';
+import { revealWhenSized } from './revealWhenSized';
 
 // The generated bundle ends with `exports.default = ...`, but Joplin executes
 // dialog scripts as browser scripts without providing `exports`.
@@ -260,6 +261,7 @@ function initializeCalendar(): void {
     nextButton.addEventListener('click', () => showMonth(1));
     selectedInput.value = toCalendarIsoDate(selectedDate);
     renderGrid(true);
+    revealWhenSized(root);
 }
 
 // Joplin injects dialog scripts only after the dialog HTML is in place, on both

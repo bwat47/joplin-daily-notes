@@ -56,6 +56,15 @@ describe('CalendarDialog', () => {
         expect(dialogs.onMessage).toHaveBeenCalledOnce();
     });
 
+    test('embeds the stylesheet in the markup and loads only the script', async () => {
+        const dialog = createDialog();
+
+        await dialog.open();
+
+        expect(dialogs.addScript).toHaveBeenCalledExactlyOnceWith('handle', './calendar/calendar.js');
+        expect(dialogs.setHtml).toHaveBeenCalledWith('handle', expect.stringContaining('<style>'));
+    });
+
     test('an initialized dialog is reused by a later open', async () => {
         const dialog = createDialog();
 
