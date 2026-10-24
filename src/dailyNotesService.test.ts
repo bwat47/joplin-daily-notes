@@ -18,6 +18,8 @@ function createRepository(): DailyNotesRepository {
         createNote: vi.fn().mockResolvedValue({ id: 'created', parent_id: 'folder', title: '2024-01-01' }),
         getNoteBody: vi.fn(),
         updateNoteBody: vi.fn(),
+        getNoteTagIds: vi.fn().mockResolvedValue([]),
+        addTagToNote: vi.fn(),
         findExistingDates: vi.fn().mockResolvedValue([]),
         findLatestNoteBefore: vi.fn().mockResolvedValue(null),
     };
@@ -61,6 +63,62 @@ describe('DailyNotesService', () => {
         await service.openDate(new Date(2024, 0, 1));
 
         expect(repository.createNote).toHaveBeenCalledWith('folder', '2024-01-01', '# 2024-01-01\nJanuary 1, 2024');
+        expect(runtime.openNote).toHaveBeenCalledWith('created');
+    });
+
+    test('copies the template tags to a created note', async () => {
+        const repository = createRepository();
+        vi.mocked(repository.getNoteBody).mockResolvedValue('Body');
+        vi.mocked(repository.getNoteTagIds).mockResolvedValue(['tag-a', 'tag-b']);
+        const runtime = createRuntime({ ...defaultSettings, templateNoteId: 'template' });
+
+        await new DailyNotesService(repository, runtime).openDate(new Date(2024, 0, 1));
+
+        expect(repository.getNoteTagIds).toHaveBeenCalledWith('template');
+        expect(repository.addTagToNote).toHaveBeenCalledWith('tag-a', 'created');
+        expect(repository.addTagToNote).toHaveBeenCalledWith('tag-b', 'created');
+        expect(runtime.showWarning).not.toHaveBeenCalled();
+    });
+
+    test('does not copy tags to an existing note', async () => {
+        const repository = createRepository();
+        vi.mocked(repository.findCanonicalNote).mockResolvedValue({
+            id: 'existing',
+            parent_id: 'folder',
+            title: '2024-01-01',
+        });
+        const runtime = createRuntime({ ...defaultSettings, templateNoteId: 'template' });
+
+        await new DailyNotesService(repository, runtime).openDate(new Date(2024, 0, 1));
+
+        expect(repository.getNoteTagIds).not.toHaveBeenCalled();
+        expect(repository.addTagToNote).not.toHaveBeenCalled();
+    });
+
+    test('creates the templated note and warns when the template tags cannot be read', async () => {
+        const repository = createRepository();
+        vi.mocked(repository.getNoteBody).mockResolvedValue('Body');
+        vi.mocked(repository.getNoteTagIds).mockRejectedValue(new Error('offline'));
+        const runtime = createRuntime({ ...defaultSettings, templateNoteId: 'template' });
+
+        await new DailyNotesService(repository, runtime).openDate(new Date(2024, 0, 1));
+
+        expect(repository.createNote).toHaveBeenCalledWith('folder', '2024-01-01', 'Body');
+        expect(repository.addTagToNote).not.toHaveBeenCalled();
+        expect(runtime.showWarning).toHaveBeenCalledOnce();
+        expect(runtime.openNote).toHaveBeenCalledWith('created');
+    });
+
+    test('still opens the note and warns when a template tag cannot be added', async () => {
+        const repository = createRepository();
+        vi.mocked(repository.getNoteBody).mockResolvedValue('Body');
+        vi.mocked(repository.getNoteTagIds).mockResolvedValue(['tag-a']);
+        vi.mocked(repository.addTagToNote).mockRejectedValue(new Error('deleted tag'));
+        const runtime = createRuntime({ ...defaultSettings, templateNoteId: 'template' });
+
+        await new DailyNotesService(repository, runtime).openDate(new Date(2024, 0, 1));
+
+        expect(runtime.showWarning).toHaveBeenCalledOnce();
         expect(runtime.openNote).toHaveBeenCalledWith('created');
     });
 

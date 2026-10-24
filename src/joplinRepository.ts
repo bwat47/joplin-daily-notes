@@ -161,6 +161,15 @@ export class JoplinRepository {
         this.invalidateCaches();
     }
 
+    public async getNoteTagIds(noteId: string): Promise<string[]> {
+        const tags = await this.listAll<{ id: string }>(['notes', noteId, 'tags'], ['id'], 'tag');
+        return tags.map((tag) => tag.id);
+    }
+
+    public async addTagToNote(tagId: string, noteId: string): Promise<void> {
+        await this.data.post(['tags', tagId, 'notes'], null, { id: noteId });
+    }
+
     /**
      * Finds the note for the first of `targets` that exists, in the order given.
      *

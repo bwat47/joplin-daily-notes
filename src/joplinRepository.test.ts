@@ -207,6 +207,20 @@ describe('JoplinRepository', () => {
         await expect(repository.createNote('folder', 'Today', 'Body')).resolves.toMatchObject({ id: 'note' });
         await expect(repository.getNoteBody('template')).resolves.toBe('# Template');
     });
+
+    test('reads paginated note tags and tags a note', async () => {
+        const data = createDataApi();
+        vi.mocked(data.get)
+            .mockResolvedValueOnce({ items: [{ id: 'tag-a' }], has_more: true })
+            .mockResolvedValueOnce({ items: [{ id: 'tag-b' }], has_more: false });
+        const repository = new JoplinRepository(data);
+
+        await expect(repository.getNoteTagIds('template')).resolves.toEqual(['tag-a', 'tag-b']);
+        expect(data.get).toHaveBeenCalledWith(['notes', 'template', 'tags'], { fields: ['id'], limit: 100, page: 2 });
+
+        await repository.addTagToNote('tag-a', 'note');
+        expect(data.post).toHaveBeenCalledWith(['tags', 'tag-a', 'notes'], null, { id: 'note' });
+    });
     test('finds the most recent earlier note across a gap in the dates', async () => {
         const data = createDataApi();
         vi.mocked(data.get)
