@@ -57,7 +57,7 @@ A calendar dot marks a note only when its title and notebook path match the curr
 
 ## Templates
 
-Set **Template note ID** to a note's 32-character Joplin ID, available from note properties or its Markdown link. The note body is copied only when a daily note is first created.
+Set **Template note ID** to a note's 32-character Joplin ID, available from note properties or its Markdown link. The note body and tags are copied only when a daily note is first created.
 
 Available variables:
 
@@ -76,7 +76,7 @@ Date variables accept the date tokens listed above. Time variables accept:
 H HH h hh m mm s ss A a
 ```
 
-Date variables use the selected note date; time variables use the creation time. Bracketed literals work in both, for example `{{date:[Week] WW}}`. Unknown or malformed variables remain unchanged. If the template cannot be read, the plugin creates an empty note and shows a warning.
+Date variables use the selected note date; time variables use the creation time. Bracketed literals work in both, for example `{{date:[Week] WW}}`. Unknown or malformed variables remain unchanged. If the template cannot be read, the plugin creates an empty note and shows a warning. If its tags cannot be read or applied, the note is created without them and a warning is shown.
 
 ## Todo rollover
 

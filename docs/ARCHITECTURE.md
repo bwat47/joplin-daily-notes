@@ -10,7 +10,7 @@ The main responsibilities are:
 
 - **Settings and commands** expose configuration and platform-appropriate entry points.
 - **Date and template logic** validates supported Day.js tokens, builds canonical note targets from local dates, and expands template variables. Note paths and `{{date:...}}` accept date tokens; `{{time:...}}` accepts time-of-day tokens.
-- **Joplin repository** traverses notebooks, lists and creates notes, reads templates, and isolates pagination and caching from the service.
+- **Joplin repository** traverses notebooks, lists and creates notes, reads templates and their tags, tags notes, and isolates pagination and caching from the service.
 - **Daily notes service** owns note creation, todo rollover, and the policy for opening a note.
 - **Calendar dialog and webview** render the calendar, exchange typed messages, and query note existence without creating data.
 
@@ -34,7 +34,7 @@ Cached reads are used only for advisory UI state such as calendar highlights. Re
 3. Resolve or create the notebook path.
 4. Find an exact-title note in the leaf notebook.
 5. If none exists, collect eligible rollover todos, render the optional template, and create the note.
-6. After creation succeeds, mark any source todos as migrated.
+6. After creation succeeds, add the template's tags to the note and mark any source todos as migrated. A tag failure shows a warning and leaves the note untagged.
 7. Open the note and focus the editor on desktop.
 
 All open-or-create operations share a promise queue. Concurrent commands in one Joplin process therefore perform their lookups in order and do not create the same note twice. Unsynced operations on separate devices remain subject to Joplin's normal conflict behavior.

@@ -30,6 +30,8 @@ export interface DailyNotesRepository {
     createNote(folderId: string, title: string, body: string): Promise<NoteRecord>;
     getNoteBody(noteId: string): Promise<string>;
     updateNoteBody(noteId: string, body: string): Promise<void>;
+    getNoteTagIds(noteId: string): Promise<string[]>;
+    addTagToNote(tagId: string, noteId: string): Promise<void>;
     findExistingDates(folderName: string, targets: DailyNoteTarget[]): Promise<string[]>;
     findLatestNoteBefore(folderName: string, targets: DailyNoteTarget[]): Promise<NoteRecord | null>;
 }
@@ -40,6 +42,12 @@ interface PendingRollover {
     source: NoteRecord | null;
     sourceBody: string;
     markerOffsets: number[];
+}
+
+/** What a new note starts with: its body and the tags copied from the template. */
+interface InitialContent {
+    body: string;
+    tagIds: string[];
 }
 
 /** A rollover that carries nothing. Built fresh so no caller shares one `markerOffsets`. */
@@ -124,8 +132,9 @@ export class DailyNotesService {
         let note = await this.repository.findCanonicalNote(folder.id, target.title);
         if (!note) {
             const rollover = await this.collectRollover(settings, folderName, date);
-            const body = await this.createInitialBody(settings, date, target.title, rollover.rolled);
-            note = await this.repository.createNote(folder.id, target.title, body);
+            const initial = await this.createInitialContent(settings, date, target.title, rollover.rolled);
+            note = await this.repository.createNote(folder.id, target.title, initial.body);
+            await this.applyTags(note.id, initial.tagIds);
             // Strictly after creation succeeds. Marking the source first and then
             // failing here would leave the todos in neither note.
             await this.markSourceMigrated(rollover);
@@ -193,6 +202,29 @@ export class DailyNotesService {
         }
     }
 
+    /** Tags the new note. A failure leaves an untagged note rather than no note. */
+    private async applyTags(noteId: string, tagIds: string[]): Promise<void> {
+        try {
+            for (const tagId of tagIds) await this.repository.addTagToNote(tagId, noteId);
+        } catch (error) {
+            const message = 'The daily note was created, but the template tags could not be added to it.';
+            logger.warn(message, error);
+            await this.showWarning(message);
+        }
+    }
+
+    /** Reads the template's tags. A failure costs only the tags, not the template body. */
+    private async readTemplateTagIds(templateNoteId: string): Promise<string[]> {
+        try {
+            return await this.repository.getNoteTagIds(templateNoteId);
+        } catch (error) {
+            const message = 'The template note tags could not be read. The daily note will be created without them.';
+            logger.warn(message, error);
+            await this.showWarning(message);
+            return [];
+        }
+    }
+
     /** A failed toast must not stop the note from being created or opened. */
     private async showWarning(message: string): Promise<void> {
         try {
@@ -203,20 +235,20 @@ export class DailyNotesService {
     }
 
     /**
-     * Builds the body of a note being created, from the template and any rolled todos.
+     * Builds the content of a note being created, from the template and any rolled todos.
      *
      * Placement is one default with one override: `{{todos}}` decides where the block
      * lands, and without it the block is appended. Rolled todos are never dropped --
      * that would lose work already marked migrated in the source note.
      */
-    private async createInitialBody(
+    private async createInitialContent(
         settings: DailyNoteSettings,
         date: Date,
         title: string,
         rolledTodos: string
-    ): Promise<string> {
+    ): Promise<InitialContent> {
         const templateNoteId = settings.templateNoteId.trim();
-        if (!templateNoteId) return rolledTodos;
+        if (!templateNoteId) return { body: rolledTodos, tagIds: [] };
 
         let template: string;
         try {
@@ -226,8 +258,10 @@ export class DailyNotesService {
             await this.showWarning(
                 'The configured template note could not be read. The daily note will be created without it.'
             );
-            return rolledTodos;
+            return { body: rolledTodos, tagIds: [] };
         }
+
+        const tagIds = await this.readTemplateTagIds(templateNoteId);
 
         // A placeholder that shares its line with other text is left to expand away
         // to nothing. By default, one occupying a line of its own takes that line
@@ -238,9 +272,9 @@ export class DailyNotesService {
             logger.warn(message)
         );
 
-        if (!rolledTodos || TODOS_PLACEHOLDER.test(template)) return rendered;
+        if (!rolledTodos || TODOS_PLACEHOLDER.test(template)) return { body: rendered, tagIds };
 
         logger.warn('The template has no {{todos}} variable; rolled todos were appended to the end of the note.');
-        return appendAfterBlankLine(rendered, rolledTodos);
+        return { body: appendAfterBlankLine(rendered, rolledTodos), tagIds };
     }
 }
