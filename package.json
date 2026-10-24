@@ -48,7 +48,7 @@
         "webpack-cli": "^7.2.2"
     },
     "dependencies": {
-        "@lezer/markdown": "^1.7.2",
+        "@lezer/markdown": "^1.8.1",
         "dayjs": "^1.11.23"
     }
 }
