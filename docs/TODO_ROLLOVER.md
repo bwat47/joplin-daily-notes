@@ -8,9 +8,10 @@ The source is the previous daily note, not necessarily yesterday. The plugin sea
 
 ## Selecting tasks
 
-- Only non-empty `- [ ]` tasks are carried; empty checkbox placeholders remain in the source note.
+- Only `- [ ]` tasks with content in the source are carried; empty checkbox placeholders remain in the source note. Descendants count as content, so a parent with no text is carried even if all its descendants are completed and left behind.
 - A task nested under an unfinished parent travels with its parent and is not carried twice.
-- An unfinished task under a completed parent is carried on its own.
+- Completed tasks are left behind, along with their text and plain sub-bullets, even when their parent is carried.
+- An unfinished task under a completed parent is still carried. At the top level it is carried on its own; inside a carried block it moves up into the completed parent's position.
 - Checkboxes inside code blocks are ignored.
 
 ## Updating notes

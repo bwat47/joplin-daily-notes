@@ -30,9 +30,55 @@ describe('extractUnfinishedTodos', () => {
 
         // The open child is inside the parent's block, so it must not also appear
         // as a block of its own.
-        expect(extractUnfinishedTodos(body).rolled).toBe(
-            lines('- [ ] parent', '  - [x] finished child', '  - [ ] open child')
+        expect(extractUnfinishedTodos(body).rolled).toBe(lines('- [ ] parent', '  - [ ] open child'));
+    });
+
+    test('drops completed descendants and lifts their open children into place', () => {
+        const body = lines(
+            '- [ ] Test2',
+            '    - [ ] Test3',
+            '    - [x] Test4',
+            '        - [ ] Test5',
+            '        - [x] Test6',
+            '    - [ ] Test7',
+            '    - [x] Test8',
+            '- [ ] Test9'
         );
+        const { rolled, markerOffsets } = extractUnfinishedTodos(body);
+
+        expect(rolled).toBe(
+            lines('- [ ] Test2', '    - [ ] Test3', '    - [ ] Test5', '    - [ ] Test7', '- [ ] Test9')
+        );
+        expect(markTodosMigrated(body, markerOffsets)).toBe(
+            lines(
+                '- [>] Test2',
+                '    - [>] Test3',
+                '    - [x] Test4',
+                '        - [>] Test5',
+                '        - [x] Test6',
+                '    - [>] Test7',
+                '    - [x] Test8',
+                '- [>] Test9'
+            )
+        );
+    });
+
+    test('drops notes that belong to a completed descendant', () => {
+        const body = lines(
+            '- [ ] parent',
+            '  - [x] done',
+            '    continuation of done',
+            '    - note about done',
+            '  - plain note about parent'
+        );
+
+        expect(extractUnfinishedTodos(body).rolled).toBe(lines('- [ ] parent', '  - plain note about parent'));
+    });
+
+    test('lifts open work out of a completed descendant inside a blockquote', () => {
+        const body = lines('> - [ ] parent', '>   - [x] done', '>     - [ ] open', '>       detail');
+
+        expect(extractUnfinishedTodos(body).rolled).toBe(lines('- [ ] parent', '  - [ ] open', '    detail'));
     });
 
     test('carries an unfinished child of a completed parent', () => {
