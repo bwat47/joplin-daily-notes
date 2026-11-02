@@ -1,7 +1,7 @@
 import type { ButtonSpec, DialogResult, ViewHandle } from 'api/types';
 import { calendarCss } from './calendarStyles';
-import { toIsoDate } from './dateFormat';
 import type { DailyNotesService } from './dailyNotesService';
+import { toIsoDate } from './dateFormat';
 import { isQueryExistingDatesMessage, type SettingsReader } from './types';
 
 /**

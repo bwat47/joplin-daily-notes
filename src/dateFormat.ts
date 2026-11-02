@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import isoWeek from 'dayjs/plugin/isoWeek';
+
 import type { DailyNoteTarget } from './types';
 
 dayjs.extend(advancedFormat);

@@ -1,6 +1,6 @@
 import {
-    DateFormatError,
     buildDailyNoteTarget,
+    DateFormatError,
     formatDate,
     formatTime,
     parseIsoDate,

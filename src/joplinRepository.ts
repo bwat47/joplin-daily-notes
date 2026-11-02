@@ -1,6 +1,6 @@
 import { ExpiringCache } from './expiringCache';
-import type { DailyNoteTarget, NoteRecord } from './types';
 import { logger } from './logger';
+import type { DailyNoteTarget, NoteRecord } from './types';
 
 const PAGE_SIZE = 100;
 /**

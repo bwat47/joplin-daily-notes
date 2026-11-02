@@ -1,8 +1,8 @@
 import { buildDailyNoteTarget, parseIsoDate, toIsoDate, validateFolderName } from './dateFormat';
 import { logger } from './logger';
 import { extractUnfinishedTodos, markTodosMigrated } from './rollover';
-import type { DailyNoteSettings, DailyNoteTarget, NoteRecord, SettingsReader } from './types';
 import { renderTemplate } from './template';
+import type { DailyNoteSettings, DailyNoteTarget, NoteRecord, SettingsReader } from './types';
 
 /** Matches the same spellings `renderTemplate` accepts, including inner whitespace. */
 const TODOS_PLACEHOLDER = /{{\s*todos\s*}}/;
