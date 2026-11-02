@@ -238,7 +238,9 @@ describe('DailyNotesService', () => {
 
             await new DailyNotesService(repository, runtime).openDate(new Date());
 
-            expect(vi.mocked(repository.createNote).mock.calls[0][2]).toBe(
+            expect(repository.createNote).toHaveBeenCalledExactlyOnceWith(
+                'folder',
+                today,
                 '## Carried over\n- [ ] Call the dentist\n\n## Today\n\n\n\n```text\nkeep blank lines\n```'
             );
         });
@@ -264,7 +266,7 @@ describe('DailyNotesService', () => {
 
             await new DailyNotesService(repository, runtime).openDate(new Date());
 
-            expect(vi.mocked(repository.createNote).mock.calls[0][2]).toBe(expected);
+            expect(repository.createNote).toHaveBeenCalledExactlyOnceWith('folder', today, expected);
         });
 
         test('keeps a standalone {{todos}} line empty when configured', async () => {
@@ -278,7 +280,11 @@ describe('DailyNotesService', () => {
 
             await new DailyNotesService(repository, runtime).openDate(new Date());
 
-            expect(vi.mocked(repository.createNote).mock.calls[0][2]).toBe('## Carried over\n\n\n\n## Today\n');
+            expect(repository.createNote).toHaveBeenCalledExactlyOnceWith(
+                'folder',
+                today,
+                '## Carried over\n\n\n\n## Today\n'
+            );
         });
 
         test('appends todos when the template has no {{todos}} variable', async () => {
@@ -290,7 +296,11 @@ describe('DailyNotesService', () => {
             await new DailyNotesService(repository, runtime).openDate(new Date());
 
             // Never dropped: they are already marked migrated in the source note.
-            expect(vi.mocked(repository.createNote).mock.calls[0][2]).toBe(`${template}\n- [ ] Call the dentist`);
+            expect(repository.createNote).toHaveBeenCalledExactlyOnceWith(
+                'folder',
+                today,
+                `${template}\n- [ ] Call the dentist`
+            );
         });
 
         test('preserves trailing template whitespace when appending todos', async () => {
@@ -301,7 +311,11 @@ describe('DailyNotesService', () => {
 
             await new DailyNotesService(repository, runtime).openDate(new Date());
 
-            expect(vi.mocked(repository.createNote).mock.calls[0][2]).toBe(`${template}- [ ] Call the dentist`);
+            expect(repository.createNote).toHaveBeenCalledExactlyOnceWith(
+                'folder',
+                today,
+                `${template}- [ ] Call the dentist`
+            );
         });
 
         test('adds a full blank-line separator when the template has no trailing newline', async () => {
@@ -312,7 +326,11 @@ describe('DailyNotesService', () => {
 
             await new DailyNotesService(repository, runtime).openDate(new Date());
 
-            expect(vi.mocked(repository.createNote).mock.calls[0][2]).toBe(`${template}\n\n- [ ] Call the dentist`);
+            expect(repository.createNote).toHaveBeenCalledExactlyOnceWith(
+                'folder',
+                today,
+                `${template}\n\n- [ ] Call the dentist`
+            );
         });
 
         test('does not add leading separators when an empty template is configured', async () => {
@@ -322,7 +340,7 @@ describe('DailyNotesService', () => {
 
             await new DailyNotesService(repository, runtime).openDate(new Date());
 
-            expect(vi.mocked(repository.createNote).mock.calls[0][2]).toBe('- [ ] Call the dentist');
+            expect(repository.createNote).toHaveBeenCalledExactlyOnceWith('folder', today, '- [ ] Call the dentist');
         });
 
         test('marks the source note only after the new note exists', async () => {
