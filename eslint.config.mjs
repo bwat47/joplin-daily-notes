@@ -66,6 +66,10 @@ export default defineConfig([
             '@typescript-eslint/consistent-type-exports': ['error', { fixMixedExportsWithInlineTypeSpecifier: true }],
             // Use `import type { A }` rather than `import { type A }` when every specifier is a type
             '@typescript-eslint/no-import-type-side-effects': 'error',
+            '@typescript-eslint/no-unnecessary-condition': [
+                'error',
+                { allowConstantLoopConditions: 'only-allowed-literals' },
+            ],
         },
     },
 

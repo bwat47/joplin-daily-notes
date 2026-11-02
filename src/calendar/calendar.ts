@@ -217,7 +217,7 @@ function initializeCalendar(): void {
 
         // Move relative to the cell that has focus: after browsing months it is
         // the visible month's anchor rather than the selected date.
-        const originIsoDate = (event.target as HTMLElement | null)?.dataset?.date;
+        const originIsoDate = (event.target as HTMLElement | null)?.dataset.date;
         const origin = originIsoDate ? parseCalendarIsoDate(originIsoDate) : selectedDate;
         selectDate(new Date(origin.getFullYear(), origin.getMonth(), origin.getDate() + offset), true);
     };
