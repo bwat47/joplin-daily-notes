@@ -146,9 +146,11 @@ function findLineOwner(subtree: ListItemInfo[], lineFrom: number): ListItemInfo 
  * which also strips the indentation and blockquote markers the root sat under.
  *
  * @example
+ * ```text
  * // - [ ] parent                   - [ ] parent
  * //   - [x] done              =>     - [ ] open grandchild
  * //     - [ ] open grandchild
+ * ```
  */
 function renderCarriedItem(body: string, items: ListItemInfo[], rootIndex: number): string {
     const root = items[rootIndex];
