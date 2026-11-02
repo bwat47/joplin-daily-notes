@@ -104,11 +104,11 @@ function collectListItems(body: string): ListItemInfo[] {
  * Decides whether each item under a carried root is kept and where it lands.
  * The returned map holds the root and its descendants in document order.
  */
-function placeSubtree(items: ListItemInfo[], root: ListItemInfo, rootIndex: number): Map<ListItemInfo, Placement> {
+function placeSubtree(root: ListItemInfo, laterItems: ListItemInfo[]): Map<ListItemInfo, Placement> {
     const placements = new Map<ListItemInfo, Placement>([[root, { kept: true, slot: '' }]]);
 
     // Document order places every parent before its children.
-    for (const item of items.slice(rootIndex + 1)) {
+    for (const item of laterItems) {
         if (item.lineFrom > root.to) break;
 
         const parent = item.parent && placements.get(item.parent);
@@ -151,8 +151,8 @@ function findLineOwner(subtree: ListItemInfo[], root: ListItemInfo, lineFrom: nu
  * //     - [ ] open grandchild
  * ```
  */
-function renderCarriedItem(body: string, items: ListItemInfo[], root: ListItemInfo, rootIndex: number): string {
-    const placements = placeSubtree(items, root, rootIndex);
+function renderCarriedItem(body: string, root: ListItemInfo, laterItems: ListItemInfo[]): string {
+    const placements = placeSubtree(root, laterItems);
     const subtree = [...placements.keys()];
 
     const lines: string[] = [];
@@ -191,7 +191,7 @@ export function extractUnfinishedTodos(body: string): RolloverExtraction {
 
         // Document order guarantees a parent is seen before the children its range covers.
         if (item.from >= collectedEnd) {
-            blocks.push(renderCarriedItem(body, items, item, index));
+            blocks.push(renderCarriedItem(body, item, items.slice(index + 1)));
             collectedEnd = item.to;
         }
         markerOffsets.push(item.task.markerFrom);
