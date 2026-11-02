@@ -49,9 +49,7 @@ export class DateFormatError extends Error {
 }
 
 function validateRepeatedToken(format: string, index: number, dialect: FormatDialect): void {
-    const character = format.charAt(index);
-    if (!Object.prototype.hasOwnProperty.call(dialect.limits, character)) return;
-    const repeatedTokenLimit = dialect.limits[character];
+    const repeatedTokenLimit = dialect.limits[format.charAt(index)];
     if (repeatedTokenLimit === undefined) return;
 
     let runEnd = index + 1;
