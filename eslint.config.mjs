@@ -40,6 +40,7 @@ export default defineConfig([
             'import-x/parsers': { '@typescript-eslint/parser': ['.ts', '.tsx'] },
         },
         rules: {
+            eqeqeq: ['error', 'always', { null: 'ignore' }],
             'tsdoc/syntax': 'error',
             // report an error if any circular dependency is found
             'import-x/no-cycle': ['error', { maxDepth: Infinity }],
