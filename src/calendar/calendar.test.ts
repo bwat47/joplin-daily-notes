@@ -24,15 +24,17 @@ describe('calendar helpers', () => {
         const dates = calendarGridDates(2024, 0, 'sunday');
 
         expect(dates).toHaveLength(42);
-        expect(toCalendarIsoDate(dates[0])).toBe('2023-12-31');
-        expect(toCalendarIsoDate(dates[41])).toBe('2024-02-10');
+        const isoDates = dates.map(toCalendarIsoDate);
+        expect(isoDates[0]).toBe('2023-12-31');
+        expect(isoDates[41]).toBe('2024-02-10');
     });
 
     test('builds a Monday-first six-week grid', () => {
         const dates = calendarGridDates(2024, 0, 'monday');
 
-        expect(toCalendarIsoDate(dates[0])).toBe('2024-01-01');
-        expect(toCalendarIsoDate(dates[41])).toBe('2024-02-11');
+        const isoDates = dates.map(toCalendarIsoDate);
+        expect(isoDates[0]).toBe('2024-01-01');
+        expect(isoDates[41]).toBe('2024-02-11');
     });
 
     test('round-trips valid local dates and rejects impossible ones', () => {
