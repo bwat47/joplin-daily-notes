@@ -232,7 +232,7 @@ function initializeCalendar(): void {
         // without a fallback anchor the whole calendar drops out of the tab order.
         const anchorIsoDate = isoDates.includes(selectedIsoDate)
             ? selectedIsoDate
-            : isoDates[dates.findIndex((date) => date.getMonth() === visibleDate.getMonth())];
+            : toCalendarIsoDate(new Date(visibleDate.getFullYear(), visibleDate.getMonth(), 1));
         // Every render replaces the date buttons, which would otherwise drop focus
         // to <body> and break arrow-key navigation. Restore it when it was ours.
         const restoreFocus = focusSelected || calendarGrid.contains(document.activeElement);

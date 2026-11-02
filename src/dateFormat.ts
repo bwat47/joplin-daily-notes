@@ -49,8 +49,10 @@ export class DateFormatError extends Error {
 }
 
 function validateRepeatedToken(format: string, index: number, dialect: FormatDialect): void {
-    if (!Object.prototype.hasOwnProperty.call(dialect.limits, format[index])) return;
-    const repeatedTokenLimit = dialect.limits[format[index]];
+    const character = format.charAt(index);
+    if (!Object.prototype.hasOwnProperty.call(dialect.limits, character)) return;
+    const repeatedTokenLimit = dialect.limits[character];
+    if (repeatedTokenLimit === undefined) return;
 
     let runEnd = index + 1;
     while (format[runEnd] === format[index]) runEnd += 1;
@@ -73,7 +75,7 @@ function validateFormat(format: string, dialect: FormatDialect): void {
             continue;
         }
 
-        if (/[A-Za-z]/.test(format[index])) {
+        if (/[A-Za-z]/.test(format.charAt(index))) {
             validateRepeatedToken(format, index, dialect);
             const token = dialect.tokens.find((candidate) => format.startsWith(candidate, index));
             if (!token) {
@@ -157,9 +159,11 @@ export function buildDailyNoteTarget(date: Date, format: string): DailyNoteTarge
         throw new DateFormatError('Date format generated an invalid "." or ".." path segment.');
     }
 
+    // split always produces at least one segment, and empty segments were rejected above.
+    const title = segments.pop()!;
     return {
         isoDate: toIsoDate(date),
-        folderSegments: segments.slice(0, -1),
-        title: segments[segments.length - 1],
+        folderSegments: segments,
+        title,
     };
 }

@@ -79,7 +79,7 @@ function selectCanonicalNote(notes: NoteRecord[], folderId: string, title: strin
             `Found ${matches.length} notes titled "${title}" in notebook ${folderId}; using the earliest-created note.`
         );
     }
-    return matches[0];
+    return matches[0] ?? null;
 }
 
 export class JoplinRepository {
@@ -101,8 +101,9 @@ export class JoplinRepository {
             const matches = folders.filter((folder) => folder.parent_id === parentId && folder.title === segment);
             if (matches.length > 1) throw new AmbiguousPathError(traversed.join('/'));
 
-            if (matches.length === 1) {
-                parent = matches[0];
+            const match = matches[0];
+            if (match) {
+                parent = match;
             } else {
                 parent = asCreatedFolder(
                     await this.data.post(['folders'], null, {
@@ -210,14 +211,14 @@ export class JoplinRepository {
         if (targets.length === 0) return [];
 
         const folders = await this.cachedFolders();
-        const groupedTargets = new Map<string, DailyNoteTarget[]>();
+        const groupedTargets = new Map<string, [DailyNoteTarget, ...DailyNoteTarget[]]>();
 
         for (const target of targets) {
             const segments = [folderName, ...target.folderSegments];
             const key = pathKey(segments);
-            const group = groupedTargets.get(key) ?? [];
-            group.push(target);
-            groupedTargets.set(key, group);
+            const group = groupedTargets.get(key);
+            if (group) group.push(target);
+            else groupedTargets.set(key, [target]);
         }
 
         const existingDates: string[] = [];
@@ -264,8 +265,9 @@ export class JoplinRepository {
             traversed.push(segment);
             const matches = folders.filter((folder) => folder.parent_id === parentId && folder.title === segment);
             if (matches.length > 1) throw new AmbiguousPathError(traversed.join('/'));
-            if (matches.length === 0) return null;
-            current = matches[0];
+            const match = matches[0];
+            if (!match) return null;
+            current = match;
             parentId = current.id;
         }
 
