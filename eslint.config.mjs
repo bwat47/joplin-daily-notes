@@ -13,11 +13,17 @@ import globals from 'globals';
 
 export default defineConfig([
     {
-        ignores: ['api/**', 'dist/**', 'webpack.config.js'],
+        ignores: ['api/**', '.api-staging-*/**', 'dist/**'],
     },
 
     js.configs.recommended,
     sonarjs.configs.recommended,
+
+    // Bundle tests run under node:test.
+    {
+        files: ['test/*.mjs'],
+        languageOptions: { globals: globals.node },
+    },
 
     // Project TS/JS sources
     {
