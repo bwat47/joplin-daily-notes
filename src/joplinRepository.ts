@@ -98,10 +98,7 @@ export class JoplinRepository {
 
         for (const segment of folderSegments) {
             traversed.push(segment);
-            const matches = folders.filter((folder) => folder.parent_id === parentId && folder.title === segment);
-            if (matches.length > 1) throw new AmbiguousPathError(traversed.join('/'));
-
-            const match = matches[0];
+            const match = this.findUniqueChildFolder(folders, parentId, segment, traversed);
             if (match) {
                 parent = match;
             } else {
@@ -256,6 +253,17 @@ export class JoplinRepository {
         this.noteTitleCache.clear();
     }
 
+    private findUniqueChildFolder(
+        folders: FolderNode[],
+        parentId: string,
+        title: string,
+        traversed: string[]
+    ): FolderNode | undefined {
+        const matches = folders.filter((folder) => folder.parent_id === parentId && folder.title === title);
+        if (matches.length > 1) throw new AmbiguousPathError(traversed.join('/'));
+        return matches[0];
+    }
+
     private findFolderPath(folders: FolderNode[], segments: string[]): FolderNode | null {
         let current: FolderNode | null = null;
         let parentId = '';
@@ -263,9 +271,7 @@ export class JoplinRepository {
 
         for (const segment of segments) {
             traversed.push(segment);
-            const matches = folders.filter((folder) => folder.parent_id === parentId && folder.title === segment);
-            if (matches.length > 1) throw new AmbiguousPathError(traversed.join('/'));
-            const match = matches[0];
+            const match = this.findUniqueChildFolder(folders, parentId, segment, traversed);
             if (!match) return null;
             current = match;
             parentId = current.id;
