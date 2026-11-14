@@ -39,6 +39,7 @@ describe('calendar helpers', () => {
 
     test('round-trips valid local dates and rejects impossible ones', () => {
         expect(toCalendarIsoDate(parseCalendarIsoDate('2024-12-31'))).toBe('2024-12-31');
+        expect(toCalendarIsoDate(parseCalendarIsoDate('0999-01-01'))).toBe('0999-01-01');
         expect(() => parseCalendarIsoDate('2024-02-30')).toThrow('Invalid date: 2024-02-30');
     });
 });

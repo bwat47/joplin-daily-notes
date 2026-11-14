@@ -42,7 +42,7 @@ function pad(value: number): string {
 }
 
 export function toCalendarIsoDate(date: Date): string {
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    return `${String(date.getFullYear()).padStart(4, '0')}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
 export function parseCalendarIsoDate(value: string): Date {
