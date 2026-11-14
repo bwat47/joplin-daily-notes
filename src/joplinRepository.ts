@@ -82,6 +82,33 @@ function selectCanonicalNote(notes: NoteRecord[], folderId: string, title: strin
     return matches[0] ?? null;
 }
 
+function findUniqueChildFolder(
+    folders: FolderNode[],
+    parentId: string,
+    title: string,
+    traversed: string[]
+): FolderNode | undefined {
+    const matches = folders.filter((folder) => folder.parent_id === parentId && folder.title === title);
+    if (matches.length > 1) throw new AmbiguousPathError(traversed.join('/'));
+    return matches[0];
+}
+
+function findFolderPath(folders: FolderNode[], segments: string[]): FolderNode | null {
+    let current: FolderNode | null = null;
+    let parentId = '';
+    const traversed: string[] = [];
+
+    for (const segment of segments) {
+        traversed.push(segment);
+        const match = findUniqueChildFolder(folders, parentId, segment, traversed);
+        if (!match) return null;
+        current = match;
+        parentId = current.id;
+    }
+
+    return current;
+}
+
 export class JoplinRepository {
     // Read-only highlight lookups only. The open-or-create path always reads
     // live, so a stale miss can never cause a duplicate note.
@@ -98,7 +125,7 @@ export class JoplinRepository {
 
         for (const segment of folderSegments) {
             traversed.push(segment);
-            const match = this.findUniqueChildFolder(folders, parentId, segment, traversed);
+            const match = findUniqueChildFolder(folders, parentId, segment, traversed);
             if (match) {
                 parent = match;
             } else {
@@ -188,7 +215,7 @@ export class JoplinRepository {
 
         for (const target of targets) {
             // Never creates: an absent notebook simply has no candidate note.
-            const folder = this.findFolderPath(folders, [folderName, ...target.folderSegments]);
+            const folder = findFolderPath(folders, [folderName, ...target.folderSegments]);
             if (!folder) continue;
 
             let notes = listings.get(folder.id);
@@ -220,7 +247,7 @@ export class JoplinRepository {
 
         const existingDates: string[] = [];
         for (const group of groupedTargets.values()) {
-            const folder = this.findFolderPath(folders, [folderName, ...group[0].folderSegments]);
+            const folder = findFolderPath(folders, [folderName, ...group[0].folderSegments]);
             if (!folder) continue;
 
             const titles = await this.cachedNoteTitles(folder.id);
@@ -251,33 +278,6 @@ export class JoplinRepository {
     private invalidateCaches(): void {
         this.folderCache.clear();
         this.noteTitleCache.clear();
-    }
-
-    private findUniqueChildFolder(
-        folders: FolderNode[],
-        parentId: string,
-        title: string,
-        traversed: string[]
-    ): FolderNode | undefined {
-        const matches = folders.filter((folder) => folder.parent_id === parentId && folder.title === title);
-        if (matches.length > 1) throw new AmbiguousPathError(traversed.join('/'));
-        return matches[0];
-    }
-
-    private findFolderPath(folders: FolderNode[], segments: string[]): FolderNode | null {
-        let current: FolderNode | null = null;
-        let parentId = '';
-        const traversed: string[] = [];
-
-        for (const segment of segments) {
-            traversed.push(segment);
-            const match = this.findUniqueChildFolder(folders, parentId, segment, traversed);
-            if (!match) return null;
-            current = match;
-            parentId = current.id;
-        }
-
-        return current;
     }
 
     private async listFolderNotes(folderId: string): Promise<NoteRecord[]> {
