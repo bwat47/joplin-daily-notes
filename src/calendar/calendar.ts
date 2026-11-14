@@ -4,6 +4,7 @@
  * This runs in Joplin's dialog webview, not in the plugin host.
  * So runtime imports are only safe when the imported module is browser-compatible.
  */
+import { tryParseIsoDate } from '../isoDate';
 import type { QueryExistingDatesResponse, WeekStart } from '../types';
 import { revealWhenSized } from './revealWhenSized';
 
@@ -45,11 +46,8 @@ export function toCalendarIsoDate(date: Date): string {
 }
 
 export function parseCalendarIsoDate(value: string): Date {
-    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-    if (!match) throw new Error(`Invalid date: ${value}`);
-
-    const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-    if (toCalendarIsoDate(date) !== value) throw new Error(`Invalid date: ${value}`);
+    const date = tryParseIsoDate(value);
+    if (!date) throw new Error(`Invalid date: ${value}`);
     return date;
 }
 

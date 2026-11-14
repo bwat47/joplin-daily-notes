@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import isoWeek from 'dayjs/plugin/isoWeek';
 
+import { tryParseIsoDate } from './isoDate';
 import type { DailyNoteTarget } from './types';
 
 dayjs.extend(advancedFormat);
@@ -110,18 +111,8 @@ export function toIsoDate(date: Date): string {
 }
 
 export function parseIsoDate(value: string): Date {
-    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-    if (!match) throw new DateFormatError(`Invalid calendar date: "${value}".`);
-
-    const year = Number(match[1]);
-    const monthIndex = Number(match[2]) - 1;
-    const day = Number(match[3]);
-    const date = new Date(year, monthIndex, day);
-
-    if (date.getFullYear() !== year || date.getMonth() !== monthIndex || date.getDate() !== day) {
-        throw new DateFormatError(`Invalid calendar date: "${value}".`);
-    }
-
+    const date = tryParseIsoDate(value);
+    if (!date) throw new DateFormatError(`Invalid calendar date: "${value}".`);
     return date;
 }
 
