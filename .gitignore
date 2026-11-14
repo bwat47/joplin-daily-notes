@@ -16,3 +16,5 @@ publish/
 gemini/
 prompts/
 .api-staging-*/
+coverage
+.fallow/

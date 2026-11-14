@@ -60,3 +60,9 @@ See [Todo rollover behavior](TODO_ROLLOVER.md) for user-visible selection, place
 ## Testing boundaries
 
 Pure logic is tested without Joplin. Repository and dialog behavior is tested through injected API interfaces, while service tests cover orchestration, concurrency, and failure policy.
+
+## Build and packaging
+
+`npm run dist` typechecks, then delegates bundling and packaging to the shared `@bwat47/joplin-plugin-scripts` dev dependency, which uses esbuild to produce `dist/` and the `.jpl` in `publish/`. Build behavior lives in that package rather than in local scripts.
+
+`plugin.config.json` registers the calendar dialog script as a webview script: the dialog loads it with a plain `<script>` tag, so it is bundled as a self-contained IIFE that starts itself.

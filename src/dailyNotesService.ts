@@ -5,7 +5,7 @@ import { renderTemplate } from './template';
 import type { DailyNoteSettings, DailyNoteTarget, NoteRecord, SettingsReader } from './types';
 
 /** Matches the same spellings `renderTemplate` accepts, including inner whitespace. */
-const TODOS_PLACEHOLDER = /{{\s*todos\s*}}/;
+const TODOS_PLACEHOLDER = /\{\{\s*todos\s*\}\}/;
 /**
  * A `{{todos}}` alone on its line, with one line break that followed it.
  *
@@ -14,7 +14,7 @@ const TODOS_PLACEHOLDER = /{{\s*todos\s*}}/;
  * headed but empty section. Taking the line and one adjacent break closes that
  * gap while leaving blank lines elsewhere in the template alone.
  */
-const EMPTY_TODOS_LINE = /^[ \t]*{{\s*todos\s*}}[ \t]*(?:\r?\n[ \t]*)?(?:\r?\n|$)/gm;
+const EMPTY_TODOS_LINE = /^[ \t]*\{\{\s*todos\s*\}\}[ \t]*(?:\r?\n[ \t]*)?(?:\r?\n|$)/gm;
 
 export interface DailyNotesRuntime {
     readSettings: SettingsReader;

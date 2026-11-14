@@ -3,7 +3,7 @@
  * Loading it via addScript instead lets the dialog render unstyled first, which shows up
  * as a visible layout adjustment after the dialog opens on Joplin mobile.
  *
- * The `css` tag lets Prettier format the template as CSS; String.raw keeps CSS escapes intact.
+ * The `css` tag lets the formatter format the template as CSS; String.raw keeps CSS escapes intact.
  */
 const css = String.raw;
 

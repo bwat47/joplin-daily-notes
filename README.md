@@ -113,8 +113,7 @@ Requires Node 22 or later.
 npm install
 npm test
 npm run lint
-npm run knip
 npm run dist
 ```
 
-The packaged plugin is written to `publish/com.bwat47.joplin-daily-notes.jpl`. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for implementation details and [docs/BUILDING.md](docs/BUILDING.md) for build details and version/API maintenance commands.
+The packaged plugin is written to `publish/com.bwat47.joplin-daily-notes.jpl`. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for implementation details and [AGENTS.md](AGENTS.md) for the full list of build, lint, and maintenance commands.
