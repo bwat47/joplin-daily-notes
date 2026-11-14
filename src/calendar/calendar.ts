@@ -169,10 +169,9 @@ function initializeCalendar(): void {
         status.classList.remove('calendar-status--error');
 
         try {
-            const response = await webviewApi.postMessage({
-                type: 'queryExistingDates',
-                dates: dates.map(toCalendarIsoDate),
-            });
+            const message = { type: 'queryExistingDates', dates: dates.map(toCalendarIsoDate) };
+            // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Joplin's webview API, not window.postMessage
+            const response = await webviewApi.postMessage(message);
             if (requestId !== requestSequence) return;
             if (!isExistingDatesResponse(response)) throw new Error('Invalid response');
             existingDates = new Set(response.existingDates);

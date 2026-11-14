@@ -35,7 +35,7 @@ export function renderTemplate(
     context: TemplateContext,
     onWarning: TemplateWarningHandler = () => undefined
 ): string {
-    return template.replace(/{{([^{}]*)}}/g, (original, rawVariable: string) => {
+    return template.replace(/\{\{([^{}]*)\}\}/g, (original, rawVariable: string) => {
         const variable = rawVariable.trim();
 
         if (variable === 'title') return context.title;
