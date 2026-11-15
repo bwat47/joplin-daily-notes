@@ -1,7 +1,7 @@
 import type { DialogResult } from 'api/types';
+import type { DailyNotesService } from '../dailyNotesService';
+import type { SettingsReader } from '../types';
 import { CalendarDialog, type JoplinDialogApi } from './calendarDialog';
-import type { DailyNotesService } from './dailyNotesService';
-import type { SettingsReader } from './types';
 
 // A plain stand-in for the port. The dialog no longer touches the Joplin
 // global, so no module mocking is needed.
@@ -61,7 +61,7 @@ describe('CalendarDialog', () => {
 
         await dialog.open();
 
-        expect(dialogs.addScript).toHaveBeenCalledExactlyOnceWith('handle', './calendar/calendar.js');
+        expect(dialogs.addScript).toHaveBeenCalledExactlyOnceWith('handle', './calendar/webview/calendar.js');
         expect(dialogs.setHtml).toHaveBeenCalledWith('handle', expect.stringContaining('<style>'));
     });
 

@@ -1,8 +1,8 @@
 import type { ButtonSpec, DialogResult, ViewHandle } from 'api/types';
+import type { DailyNotesService } from '../dailyNotesService';
+import { toIsoDate } from '../dateFormat';
+import { isQueryExistingDatesMessage, type SettingsReader } from '../types';
 import { calendarCss } from './calendarStyles';
-import type { DailyNotesService } from './dailyNotesService';
-import { toIsoDate } from './dateFormat';
-import { isQueryExistingDatesMessage, type SettingsReader } from './types';
 
 /**
  * The Joplin view surface the calendar needs, as a port.
@@ -54,7 +54,7 @@ export class CalendarDialog {
 
     private async createHandle(): Promise<ViewHandle> {
         const handle = await this.dialogs.create('daily-notes-calendar-dialog');
-        await this.dialogs.addScript(handle, './calendar/calendar.js');
+        await this.dialogs.addScript(handle, './calendar/webview/calendar.js');
         await this.dialogs.setButtons(handle, [
             { id: 'confirm', title: 'Open' },
             { id: 'cancel', title: 'Cancel' },

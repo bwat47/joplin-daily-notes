@@ -4,8 +4,8 @@
  * This runs in Joplin's dialog webview, not in the plugin host.
  * So runtime imports are only safe when the imported module is browser-compatible.
  */
-import { tryParseIsoDate } from '../isoDate';
-import type { QueryExistingDatesResponse, WeekStart } from '../types';
+import { tryParseIsoDate } from '../../isoDate';
+import type { QueryExistingDatesResponse, WeekStart } from '../../types';
 import { revealWhenSized } from './revealWhenSized';
 
 // The generated bundle ends with `exports.default = ...`, but Joplin executes

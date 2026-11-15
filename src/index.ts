@@ -1,6 +1,6 @@
 import joplin from 'api';
 import { ToastType } from 'api/types';
-import { CalendarDialog, type JoplinDialogApi } from './calendarDialog';
+import { CalendarDialog, type JoplinDialogApi } from './calendar/calendarDialog';
 import { registerCommands } from './commands';
 import { DailyNotesService } from './dailyNotesService';
 import { JoplinRepository } from './joplinRepository';

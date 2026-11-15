@@ -1,6 +1,6 @@
 import joplin from 'api';
 import { MenuItemLocation, ToastType, ToolbarButtonLocation } from 'api/types';
-import type { CalendarDialog } from './calendarDialog';
+import type { CalendarDialog } from './calendar/calendarDialog';
 import type { DailyNotesService } from './dailyNotesService';
 import { toMessage } from './errors';
 import { logger } from './logger';
