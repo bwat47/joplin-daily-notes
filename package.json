@@ -27,7 +27,7 @@
         "publish"
     ],
     "devDependencies": {
-        "@bwat47/joplin-plugin-scripts": "^1.1.0",
+        "@bwat47/joplin-plugin-scripts": "^1.6.1",
         "@types/node": "^24.19.2",
         "@vitest/coverage-v8": "^5.1.0",
         "eslint-plugin-regexp": "^3.3.3",
