@@ -67,6 +67,35 @@ describe('JoplinRepository', () => {
         await expect(new JoplinRepository(data).ensureFolderPath(['Daily Notes'])).rejects.toThrow(AmbiguousPathError);
     });
 
+    // Lookups must refuse to guess between same-named sibling notebooks: picking one
+    // could carry todos forward from the wrong note or highlight the wrong dates.
+    test.each([
+        [
+            'findLatestNoteBefore',
+            (repository: JoplinRepository, targets: DailyNoteTarget[]) =>
+                repository.findLatestNoteBefore('Daily Notes', targets),
+        ],
+        [
+            'findExistingDates',
+            (repository: JoplinRepository, targets: DailyNoteTarget[]) =>
+                repository.findExistingDates('Daily Notes', targets),
+        ],
+    ])('%s rejects ambiguous nested notebook paths without creating folders', async (_name, lookup) => {
+        const data = createDataApi();
+        vi.mocked(data.get).mockResolvedValue({
+            items: [
+                { id: 'root', title: 'Daily Notes', parent_id: '' },
+                { id: 'one', title: '2024', parent_id: 'root' },
+                { id: 'two', title: '2024', parent_id: 'root' },
+            ],
+            has_more: false,
+        });
+        const targets: DailyNoteTarget[] = [{ isoDate: '2024-01-01', folderSegments: ['2024'], title: '01-01' }];
+
+        await expect(lookup(new JoplinRepository(data), targets)).rejects.toThrow(AmbiguousPathError);
+        expect(data.post).not.toHaveBeenCalled();
+    });
+
     test('paginates notes and selects the earliest exact-title duplicate', async () => {
         const data = createDataApi();
         vi.mocked(data.get)
